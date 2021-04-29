@@ -80,13 +80,22 @@ public class Test1 {
     public void test5() {
         UserDao userDao = getUserDao();
 
-        int cnt = userDao.count();
+        int cnt = userDao.count1();
         assertEquals(3, cnt);
 
-        cnt = userDao.countByLevel(3);
+        cnt = userDao.countByLevel1(3);
         assertEquals(1, cnt);
 
-        cnt = userDao.countByLevel(100);
+        cnt = userDao.countByLevel1(100);
+        assertEquals(0, cnt);
+
+        cnt = userDao.count2();
+        assertEquals(3, cnt);
+
+        cnt = userDao.countByLevel2(3);
+        assertEquals(1, cnt);
+
+        cnt = userDao.countByLevel2(100);
         assertEquals(0, cnt);
     }
 
@@ -96,7 +105,7 @@ public class Test1 {
 
         int row = userDao.insert("byx", "666", 100);
         assertEquals(1, row);
-        assertEquals(4, userDao.count());
+        assertEquals(4, userDao.count1());
 
         List<User> users = userDao.listByLevel(100);
         assertEquals(1, users.size());
@@ -105,7 +114,7 @@ public class Test1 {
         assertEquals(100, users.get(0).getLevel());
 
         userDao.deleteByUsername("byx");
-        assertEquals(3, userDao.count());
+        assertEquals(3, userDao.count1());
 
         userDao.deleteByUsername("John");
     }

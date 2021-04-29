@@ -96,8 +96,10 @@ public class DaoGenerator {
         // 如果返回值是基本类型，则查询单个值
         // 如果返回值不是列表，则查询单行数据
         // 否则，查询列表
-        if (resultType == Integer.class || resultType == Double.class || resultType == String.class) {
-            return jdbcUtils.querySingleValue(sql, resultType);
+        if (resultType == int.class || resultType == Integer.class ||
+                resultType == double.class || resultType == Double.class ||
+                resultType == String.class) {
+            return jdbcUtils.querySingleValue(sql);
         } else if (signature.getReturnType() != List.class) {
             Map<String, Object> resultMap = jdbcUtils.querySingleRow(sql, new MapRowMapper());
             // 查询结果为空
