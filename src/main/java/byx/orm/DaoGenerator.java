@@ -89,6 +89,7 @@ public class DaoGenerator {
 
         // 替换占位符
         sql = PlaceholderUtils.replace(sql, paramMap);
+        System.out.println("sql: " + sql);
 
         // 获取方法返回值类型
         Class<?> resultType = signature.getReturnType();
@@ -134,6 +135,7 @@ public class DaoGenerator {
 
         // 替换占位符
         sql = PlaceholderUtils.replace(sql, paramMap);
+        System.out.println("sql: " + sql);
 
         // 如果方法返回值为void，则直接执行更新操作
         // 否则返回影响行数

@@ -118,4 +118,13 @@ public class Test1 {
 
         userDao.deleteByUsername("John");
     }
+
+    @Test
+    public void test7() {
+        UserDao userDao = getUserDao();
+
+        List<User> users = userDao.listOfLevelRange(new Range(2, 4));
+        assertEquals(2, users.size());
+        assertEquals(List.of(3, 2), users.stream().map(User::getLevel).collect(Collectors.toList()));
+    }
 }

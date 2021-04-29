@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  * @author byx
  */
 public class PlaceholderUtils {
-    private static final Pattern PATTERN = Pattern.compile("#\\{([a-zA-Z]|_)([0-9a-zA-Z]|_)*}");
+    private static final Pattern PATTERN = Pattern.compile("#\\{([a-zA-Z]|_)([0-9a-zA-Z]|_|\\.)*}");
 
     /**
      * 替换sql中的占位符
