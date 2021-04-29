@@ -28,7 +28,7 @@ public class Test1 {
     public void test1() {
         UserDao userDao = getUserDao();
 
-        List<User> users = userDao.list();
+        List<User> users = userDao.listAll();
         assertEquals(3, users.size());
         assertEquals(List.of(1, 2, 3), users.stream().map(User::getId).collect(Collectors.toList()));
         assertEquals(List.of("aaa", "bbb", "ccc"), users.stream().map(User::getUsername).collect(Collectors.toList()));

@@ -1,6 +1,5 @@
 package byx.orm;
 
-import byx.orm.annotation.Param;
 import byx.orm.annotation.Query;
 import byx.orm.annotation.Update;
 import byx.orm.util.MapUtils;
@@ -13,7 +12,6 @@ import byx.util.proxy.core.MethodSignature;
 import byx.util.proxy.core.TargetMethod;
 
 import javax.sql.DataSource;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -73,18 +71,11 @@ public class DaoGenerator {
      * 获取参数映射表
      */
     private Map<String, Object> getParamMap(TargetMethod targetMethod) {
-        Object[] params = targetMethod.getParams();
-        Annotation[][] paramAnnotations = targetMethod.getSignature().getParameterAnnotations();
+        String[] paramNames = targetMethod.getSignature().getParameterNames();
+        Object[] paramValues = targetMethod.getParams();
         Map<String, Object> map = new HashMap<>(10);
-        for (int i = 0; i < paramAnnotations.length; ++i) {
-            String paramName = "";
-            for (int j = 0; j < paramAnnotations[i].length; ++j) {
-                if (paramAnnotations[i][j] instanceof Param) {
-                    paramName = ((Param) paramAnnotations[i][j]).value();
-                    break;
-                }
-            }
-            map.put(paramName, params[i]);
+        for (int i = 0; i < paramNames.length; ++i) {
+            map.put(paramNames[i], paramValues[i]);
         }
         return map;
     }
