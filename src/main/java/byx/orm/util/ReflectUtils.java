@@ -117,6 +117,7 @@ public class ReflectUtils {
         try {
             PropertyDescriptor pd = new PropertyDescriptor(propertyName, bean.getClass());
             Method setter = pd.getWriteMethod();
+            setter.setAccessible(true);
             setter.invoke(bean, value);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -133,6 +134,7 @@ public class ReflectUtils {
         try {
             PropertyDescriptor pd = new PropertyDescriptor(propertyName, bean.getClass());
             Method getter = pd.getReadMethod();
+            getter.setAccessible(true);
             return getter.invoke(bean);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -208,13 +210,19 @@ public class ReflectUtils {
      * 根据参数数组获取类型数组
      */
     private static Class<?>[] getTypes(Object... params) {
-        return Arrays.stream(params).map(Object::getClass).toArray(Class<?>[]::new);
+        //return Arrays.stream(params).map(Object::getClass).toArray(Class<?>[]::new);
+        return Arrays.stream(params).map(o -> o == null ? null : o.getClass()).toArray(Class<?>[]::new);
     }
 
     /**
      * 判断两个类型是否匹配（相同或者为包装类型关系）
      */
     private static boolean match(Class<?> declaredType, Class<?> actualType) {
+        if (declaredType == null) {
+            return false;
+        } else if (actualType == null) {
+            return true;
+        }
         return getWrap(declaredType).isAssignableFrom(getWrap(actualType));
     }
 

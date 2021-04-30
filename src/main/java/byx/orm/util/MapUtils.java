@@ -2,7 +2,6 @@ package byx.orm.util;
 
 import byx.orm.annotation.Column;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Map;
 
@@ -20,9 +19,7 @@ public class MapUtils {
      */
     public static Object mapToObject(Class<?> resultType, Map<String, Object> resultMap) {
         try {
-            Constructor<?> constructor = resultType.getConstructor();
-            constructor.setAccessible(true);
-            Object result = constructor.newInstance();
+            Object result = ReflectUtils.create(resultType);
             for (Field field : resultType.getDeclaredFields()) {
                 field.setAccessible(true);
                 if (field.isAnnotationPresent(Column.class)) {

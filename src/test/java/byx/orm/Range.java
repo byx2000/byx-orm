@@ -4,7 +4,7 @@ public class Range {
     private Integer low;
     private Integer high;
 
-    public Range(int low, int high) {
+    public Range(Integer low, Integer high) {
         this.low = low;
         this.high = high;
     }

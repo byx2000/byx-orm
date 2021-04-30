@@ -1,32 +1,53 @@
 package byx.orm;
 
-import com.alibaba.druid.pool.DruidDataSource;
+import byx.orm.annotation.Query;
+import byx.orm.annotation.Update;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
-import javax.sql.DataSource;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Test1 {
-    private DataSource dataSource() {
-        DruidDataSource dataSource = new DruidDataSource();
-        dataSource.setDriverClassName("org.sqlite.JDBC");
-        dataSource.setUrl("jdbc:sqlite::resource:test.db");
-        dataSource.setUsername("");
-        dataSource.setPassword("");
-        dataSource.setTestWhileIdle(false);
-        return dataSource;
-    }
+import static org.junit.jupiter.api.Assertions.*;
 
-    private UserDao getUserDao() {
-        DaoGenerator daoGenerator = new DaoGenerator(dataSource());
-        return daoGenerator.generate(UserDao.class);
+public class Test1 extends BaseTest {
+    private interface UserDao {
+        @Query("SELECT * FROM t_user WHERE u_id = #{id}")
+        User getById(int id);
+
+        @Query("SELECT * FROM t_user WHERE u_username = #{username} AND u_password = #{password}")
+        User getByUsernameAndPassword(String username, String password);
+
+        @Query("SELECT * FROM t_user")
+        List<User> listAll();
+
+        @Query("SELECT * FROM t_user WHERE level >= #{level}")
+        List<User> listByLevel(Integer level);
+
+        @Query("SELECT COUNT(*) FROM t_user")
+        Integer count1();
+
+        @Query("SELECT COUNT(*) FROM t_user")
+        int count2();
+
+        @Query("SELECT COUNT(*) FROM t_user WHERE level = #{level}")
+        Integer countByLevel1(Integer level);
+
+        @Query("SELECT COUNT(*) FROM t_user WHERE level = #{level}")
+        int countByLevel2(Integer level);
+
+        @Query("SELECT * FROM t_user WHERE level >= #{range.low} AND level <= #{range.high}")
+        List<User> listOfLevelRange(Range range);
+
+        @Update("INSERT INTO t_user(u_username, u_password, level) VALUES(#{username}, #{password}, #{level})")
+        int insert(String username, String password, int level);
+
+        @Update("DELETE FROM t_user WHERE u_username = #{username}")
+        void deleteByUsername(String username);
     }
 
     @Test
     public void test1() {
-        UserDao userDao = getUserDao();
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
 
         List<User> users = userDao.listAll();
         assertEquals(3, users.size());
@@ -38,7 +59,7 @@ public class Test1 {
 
     @Test
     public void test2() {
-        UserDao userDao = getUserDao();
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
 
         List<User> users = userDao.listByLevel(2);
         assertEquals(2, users.size());
@@ -52,7 +73,7 @@ public class Test1 {
 
     @Test
     public void test3() {
-        UserDao userDao = getUserDao();
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
 
         User user = userDao.getById(2);
         assertEquals(2, user.getId());
@@ -65,7 +86,7 @@ public class Test1 {
 
     @Test
     public void test4() {
-        UserDao userDao = getUserDao();
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
 
         User user = userDao.getByUsernameAndPassword("ccc", "789");
         assertEquals(3, user.getId());
@@ -78,7 +99,7 @@ public class Test1 {
 
     @Test
     public void test5() {
-        UserDao userDao = getUserDao();
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
 
         int cnt = userDao.count1();
         assertEquals(3, cnt);
@@ -101,7 +122,7 @@ public class Test1 {
 
     @Test
     public void test6() {
-        UserDao userDao = getUserDao();
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
 
         int row = userDao.insert("byx", "666", 100);
         assertEquals(1, row);
@@ -121,7 +142,7 @@ public class Test1 {
 
     @Test
     public void test7() {
-        UserDao userDao = getUserDao();
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
 
         List<User> users = userDao.listOfLevelRange(new Range(2, 4));
         assertEquals(2, users.size());
