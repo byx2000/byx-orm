@@ -1,6 +1,7 @@
 package byx.orm;
 
 import byx.orm.annotation.DynamicQuery;
+import byx.orm.util.SqlBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,6 +18,12 @@ public class Test2 extends BaseTest {
 
         @DynamicQuery(type = SqlProvider.class, method = "listByLevelRange3")
         List<User> listByLevelRange3(Integer low, Integer high);
+
+        @DynamicQuery(type = SqlProvider.class)
+        List<User> listByLevelRange4(Integer low, Integer high);
+
+        @DynamicQuery(type = SqlProvider.class)
+        List<User> listByLevelRange5(Integer low, Integer high);
 
         class SqlProvider {
             public String listByLevelRange1(Integer low, Integer high) {
@@ -55,6 +62,33 @@ public class Test2 extends BaseTest {
                     sql += "WHERE level <= #{high}";
                 }
                 return sql;
+            }
+
+            public String listByLevelRange4(Integer low, Integer high) {
+                SqlBuilder builder = new SqlBuilder();
+                builder.select("*").from("t_user");
+                if (low != null) {
+                    builder.where("level >= #{low}");
+                }
+                if (high != null) {
+                    builder.where("level <= #{high}");
+                }
+                return builder.build();
+            }
+
+            public String listByLevelRange5(Integer low, Integer high) {
+                return new SqlBuilder(){
+                    {
+                        select("*");
+                        from("t_user");
+                        if (low != null) {
+                            where("level >= #{low}");
+                        }
+                        if (high != null) {
+                            where("level <= #{high}");
+                        }
+                    }
+                }.build();
             }
         }
     }
@@ -143,6 +177,64 @@ public class Test2 extends BaseTest {
         assertEquals(3, users.size());
 
         users = userDao.listByLevelRange3(3, 2);
+        assertTrue(users.isEmpty());
+    }
+
+    @Test
+    public void test4() {
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+
+        List<User> users = userDao.listByLevelRange4(2, 3);
+        assertEquals(2, users.size());
+        for (User u : users) {
+            assertTrue(u.getLevel() >= 2 && u.getLevel() <= 3);
+        }
+
+        users = userDao.listByLevelRange4(null, 3);
+        assertEquals(3, users.size());
+        for (User u : users) {
+            assertTrue(u.getLevel() <= 3);
+        }
+
+        users = userDao.listByLevelRange4(2, null);
+        assertEquals(2, users.size());
+        for (User u : users) {
+            assertTrue(u.getLevel() >= 2);
+        }
+
+        users = userDao.listByLevelRange4(null, null);
+        assertEquals(3, users.size());
+
+        users = userDao.listByLevelRange4(3, 2);
+        assertTrue(users.isEmpty());
+    }
+
+    @Test
+    public void test5() {
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+
+        List<User> users = userDao.listByLevelRange5(2, 3);
+        assertEquals(2, users.size());
+        for (User u : users) {
+            assertTrue(u.getLevel() >= 2 && u.getLevel() <= 3);
+        }
+
+        users = userDao.listByLevelRange5(null, 3);
+        assertEquals(3, users.size());
+        for (User u : users) {
+            assertTrue(u.getLevel() <= 3);
+        }
+
+        users = userDao.listByLevelRange5(2, null);
+        assertEquals(2, users.size());
+        for (User u : users) {
+            assertTrue(u.getLevel() >= 2);
+        }
+
+        users = userDao.listByLevelRange5(null, null);
+        assertEquals(3, users.size());
+
+        users = userDao.listByLevelRange5(3, 2);
         assertTrue(users.isEmpty());
     }
 }
