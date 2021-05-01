@@ -8,7 +8,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DaoGeneratorTest2 extends BaseTest {
+public class DynamicQueryTest extends BaseTest {
     private interface UserDao {
         @DynamicQuery(type = SqlProvider.class, method = "listByLevelRange1")
         List<User> listByLevelRange1(Integer low, Integer high);

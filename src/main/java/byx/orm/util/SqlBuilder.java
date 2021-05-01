@@ -58,6 +58,14 @@ public class SqlBuilder {
         return addItem("where", "WHERE ", "", " AND ", item);
     }
 
+    public SqlBuilder update(String item) {
+        return addItem("update", "UPDATE ", "", ", ", item);
+    }
+
+    public SqlBuilder set(String item) {
+        return addItem("set", "SET ", "", ", ", item);
+    }
+
     public SqlBuilder append(String item) {
         return addItem("append", "", "", " ", item);
     }

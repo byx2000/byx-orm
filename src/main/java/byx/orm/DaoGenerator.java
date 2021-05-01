@@ -1,6 +1,7 @@
 package byx.orm;
 
 import byx.orm.annotation.DynamicQuery;
+import byx.orm.annotation.DynamicUpdate;
 import byx.orm.annotation.Query;
 import byx.orm.annotation.Update;
 import byx.orm.util.MapUtils;
@@ -64,6 +65,8 @@ public class DaoGenerator {
                 return processUpdate(signature, paramMap);
             } else if (signature.hasAnnotation(DynamicQuery.class)) {
                 return processDynamicQuery(targetMethod);
+            } else if (signature.hasAnnotation(DynamicUpdate.class)) {
+                return processDynamicUpdate(targetMethod);
             } else {
                 throw new RuntimeException("方法定义不正确");
             }
@@ -143,6 +146,9 @@ public class DaoGenerator {
         }
     }
 
+    /**
+     * 执行更新操作并返回结果
+     */
     private Object executeUpdate(String sql, MethodSignature signature) {
         // 如果方法返回值为void，则直接执行更新操作
         // 否则返回影响行数
@@ -155,6 +161,18 @@ public class DaoGenerator {
     }
 
     /**
+     * 获取动态sql字符串
+     */
+    private String getDynamicSql(Class<?> type, String methodName, Object[] params) {
+        try {
+            Object instance = ReflectUtils.create(type);
+            return ReflectUtils.call(instance, methodName, params);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * 获取动态查询的sql
      */
     private String getDynamicQuerySql(TargetMethod targetMethod) {
@@ -162,13 +180,18 @@ public class DaoGenerator {
         DynamicQuery dqa = signature.getAnnotation(DynamicQuery.class);
         Class<?> type = dqa.type();
         String methodName = "".equals(dqa.method()) ? signature.getName() : dqa.method();
+        return getDynamicSql(type, methodName, targetMethod.getParams());
+    }
 
-        try {
-            Object instance = ReflectUtils.create(type);
-            return ReflectUtils.call(instance, methodName, targetMethod.getParams());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    /**
+     * 获取动态更新的sql
+     */
+    private String getDynamicUpdateSql(TargetMethod targetMethod) {
+        MethodSignature signature = targetMethod.getSignature();
+        DynamicUpdate dua = signature.getAnnotation(DynamicUpdate.class);
+        Class<?> type = dua.type();
+        String methodName = "".equals(dua.method()) ? signature.getName() : dua.method();
+        return getDynamicSql(type, methodName, targetMethod.getParams());
     }
 
     /**
@@ -179,5 +202,15 @@ public class DaoGenerator {
         sql = PlaceholderUtils.replace(sql, getParamMap(targetMethod));
         System.out.println("sql: " + sql);
         return executeQuery(sql, targetMethod.getSignature());
+    }
+
+    /**
+     * 处理动态更新并返回结果
+     */
+    private Object processDynamicUpdate(TargetMethod targetMethod) {
+        String sql = getDynamicUpdateSql(targetMethod);
+        sql = PlaceholderUtils.replace(sql, getParamMap(targetMethod));
+        System.out.println("sql: " + sql);
+        return executeUpdate(sql, targetMethod.getSignature());
     }
 }

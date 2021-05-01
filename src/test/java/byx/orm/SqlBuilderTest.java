@@ -92,4 +92,15 @@ public class SqlBuilderTest {
                 .build();
         assertEquals("SELECT id, username FROM users, books", sql);
     }
+
+    @Test
+    public void test9() {
+        String sql = new SqlBuilder()
+                .update("users")
+                .set("username = 'aaa'")
+                .set("password = '123'")
+                .where("id = 1001")
+                .build();
+        assertEquals("UPDATE users SET username = 'aaa', password = '123' WHERE id = 1001", sql);
+    }
 }

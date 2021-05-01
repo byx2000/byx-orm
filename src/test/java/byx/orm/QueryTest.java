@@ -1,15 +1,15 @@
 package byx.orm;
 
 import byx.orm.annotation.Query;
-import byx.orm.annotation.Update;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class DaoGeneratorTest1 extends BaseTest {
+public class QueryTest extends BaseTest {
     private interface UserDao {
         @Query("SELECT * FROM t_user WHERE u_id = #{id}")
         User getById(int id);
@@ -37,12 +37,6 @@ public class DaoGeneratorTest1 extends BaseTest {
 
         @Query("SELECT * FROM t_user WHERE level >= #{range.low} AND level <= #{range.high}")
         List<User> listOfLevelRange(Range range);
-
-        @Update("INSERT INTO t_user(u_username, u_password, level) VALUES(#{username}, #{password}, #{level})")
-        int insert(String username, String password, int level);
-
-        @Update("DELETE FROM t_user WHERE u_username = #{username}")
-        void deleteByUsername(String username);
     }
 
     @Test
@@ -122,26 +116,6 @@ public class DaoGeneratorTest1 extends BaseTest {
 
     @Test
     public void test6() {
-        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
-
-        int row = userDao.insert("byx", "666", 100);
-        assertEquals(1, row);
-        assertEquals(4, userDao.count1());
-
-        List<User> users = userDao.listByLevel(100);
-        assertEquals(1, users.size());
-        assertEquals("byx", users.get(0).getUsername());
-        assertEquals("666", users.get(0).getPassword());
-        assertEquals(100, users.get(0).getLevel());
-
-        userDao.deleteByUsername("byx");
-        assertEquals(3, userDao.count1());
-
-        userDao.deleteByUsername("John");
-    }
-
-    @Test
-    public void test7() {
         UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
 
         List<User> users = userDao.listOfLevelRange(new Range(2, 4));

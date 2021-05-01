@@ -6,13 +6,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 动态查询
+ * 动态更新
  *
  * @author byx
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface DynamicQuery {
+public @interface DynamicUpdate {
     /**
      * 提供动态sql字符串的类
      */
