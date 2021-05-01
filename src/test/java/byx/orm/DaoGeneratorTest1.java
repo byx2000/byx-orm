@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class Test1 extends BaseTest {
+public class DaoGeneratorTest1 extends BaseTest {
     private interface UserDao {
         @Query("SELECT * FROM t_user WHERE u_id = #{id}")
         User getById(int id);

@@ -81,4 +81,15 @@ public class SqlBuilderTest {
                 .build();
         assertEquals("SELECT name FROM users LIMIT 100 OFFSET 50", sql);
     }
+
+    @Test
+    public void test8() {
+        String sql = new SqlBuilder()
+                .select("id")
+                .from("users")
+                .select("username")
+                .from("books")
+                .build();
+        assertEquals("SELECT id, username FROM users, books", sql);
+    }
 }
