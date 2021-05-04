@@ -37,6 +37,15 @@ public class QueryTest extends BaseTest {
 
         @Query("SELECT * FROM t_user WHERE level >= #{range.low} AND level <= #{range.high}")
         List<User> listOfLevelRange(Range range);
+
+        @Query("SELECT u_username FROM t_user")
+        List<String> listAllUsername();
+
+        @Query("SELECT u_id, u_username FROM t_user WHERE u_id = #{id}")
+        User getById2(Integer id);
+
+        @Query("SELECT u_id, 123 AS value FROM t_user WHERE u_id = #{id}")
+        User getById3(Integer id);
     }
 
     @Test
@@ -121,5 +130,35 @@ public class QueryTest extends BaseTest {
         List<User> users = userDao.listOfLevelRange(new Range(2, 4));
         assertEquals(2, users.size());
         assertEquals(List.of(3, 2), users.stream().map(User::getLevel).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void test7() {
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+
+        List<String> usernames = userDao.listAllUsername();
+        assertEquals(List.of("aaa", "bbb", "ccc"), usernames);
+    }
+
+    @Test
+    public void test8() {
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+
+        User user = userDao.getById2(1);
+        assertEquals(1, user.getId());
+        assertEquals("aaa", user.getUsername());
+        assertNull(user.getPassword());
+        assertNull(user.getLevel());
+    }
+
+    @Test
+    public void test9() {
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+
+        User user = userDao.getById3(2);
+        assertEquals(2, user.getId());
+        assertNull(user.getUsername());
+        assertNull(user.getPassword());
+        assertNull(user.getLevel());
     }
 }

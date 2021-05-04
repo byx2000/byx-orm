@@ -4,7 +4,7 @@ import byx.orm.annotation.DynamicQuery;
 import byx.orm.annotation.DynamicUpdate;
 import byx.orm.annotation.Query;
 import byx.orm.annotation.Update;
-import byx.orm.util.MapUtils;
+import byx.orm.util.MapperUtils;
 import byx.orm.util.PlaceholderUtils;
 import byx.orm.util.ReflectUtils;
 import byx.util.jdbc.JdbcUtils;
@@ -16,10 +16,10 @@ import byx.util.proxy.core.TargetMethod;
 
 import javax.sql.DataSource;
 import java.lang.reflect.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Dao生成器
@@ -110,39 +110,30 @@ public class DaoGenerator {
      * 执行查询操作并返回结果
      */
     private Object executeQuery(String sql, MethodSignature signature) {
+        // 执行sql，获取结果集
+        List<Map<String, Object>> resultList = jdbcUtils.queryList(sql, new MapRowMapper());
+
         // 获取方法返回值类型
         Class<?> returnType = signature.getReturnType();
 
-        // 如果返回值是基本类型，则查询单个值
-        // 如果返回值不是列表，则查询单行数据
-        // 否则，查询列表
-        if (returnType == int.class || returnType == Integer.class ||
-                returnType == double.class || returnType == Double.class ||
-                returnType == String.class) {
-            return jdbcUtils.querySingleValue(sql);
-        } else if (returnType != List.class) {
-            Map<String, Object> resultMap = jdbcUtils.querySingleRow(sql, new MapRowMapper());
-            // 查询结果为空
-            if (resultMap == null) {
-                return null;
-            }
-            return MapUtils.mapToObject(returnType, resultMap);
-        } else {
-            // 获取返回值列表的泛型参数
+        // 如果返回值是列表，则获取列表的泛型参数类型，并把结果集的每一行转换成该类型
+        // 否则，直接把结果集的第一行转换成返回值类型
+        if (returnType == List.class) {
             Type t = signature.getGenericReturnType();
-            Class<?> resultType;
             if (t instanceof ParameterizedType) {
-                resultType = (Class<?>) ((ParameterizedType) t).getActualTypeArguments()[0];
+                Class<?> resultType = (Class<?>) ((ParameterizedType) t).getActualTypeArguments()[0];
+                return resultList.stream().map(m -> MapperUtils.mapToObject(resultType, m)).collect(Collectors.toList());
             } else {
                 throw new RuntimeException("泛型参数不正确");
             }
-
-            List<Map<String, Object>> resultMapList = jdbcUtils.queryList(sql, new MapRowMapper());
-            List<Object> resultList = new ArrayList<>();
-            for (Map<String, Object> m : resultMapList) {
-                resultList.add(MapUtils.mapToObject(resultType, m));
+        } else {
+            if (resultList.isEmpty()) {
+                return null;
             }
-            return resultList;
+            if (resultList.size() > 1) {
+                throw new RuntimeException("结果集行数大于1");
+            }
+            return MapperUtils.mapToObject(returnType, resultList.get(0));
         }
     }
 
