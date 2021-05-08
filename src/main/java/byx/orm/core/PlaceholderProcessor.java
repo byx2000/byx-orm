@@ -1,4 +1,4 @@
-package byx.orm.util;
+package byx.orm.core;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
@@ -9,11 +9,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 占位符替换工具类
+ * 占位符处理器
  *
  * @author byx
  */
-public class PlaceholderUtils {
+public class PlaceholderProcessor {
     private static final Pattern PATTERN = Pattern.compile("#\\{([a-zA-Z]|_)([0-9a-zA-Z]|_|\\.)*}");
 
     /**

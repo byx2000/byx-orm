@@ -5,7 +5,7 @@ import byx.orm.annotation.DynamicUpdate;
 import byx.orm.annotation.Query;
 import byx.orm.annotation.Update;
 import byx.orm.core.ObjectMapper;
-import byx.orm.util.PlaceholderUtils;
+import byx.orm.core.PlaceholderProcessor;
 import byx.util.jdbc.JdbcUtils;
 import byx.util.jdbc.core.MapRowMapper;
 import byx.util.proxy.ProxyUtils;
@@ -14,10 +14,7 @@ import byx.util.proxy.core.MethodSignature;
 import byx.util.proxy.core.TargetMethod;
 
 import javax.sql.DataSource;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +90,7 @@ public class DaoGenerator {
      */
     private Object processQuery(MethodSignature signature, Map<String, Object> paramMap) {
         String sql = signature.getAnnotation(Query.class).value();
-        sql = PlaceholderUtils.replace(sql, paramMap);
+        sql = PlaceholderProcessor.replace(sql, paramMap);
         System.out.println("sql: " + sql);
         return executeQuery(sql, signature);
     }
@@ -103,7 +100,7 @@ public class DaoGenerator {
      */
     private Object processUpdate(MethodSignature signature, Map<String, Object> paramMap) {
         String sql = signature.getAnnotation(Update.class).value();
-        sql = PlaceholderUtils.replace(sql, paramMap);
+        sql = PlaceholderProcessor.replace(sql, paramMap);
         System.out.println("sql: " + sql);
         return executeUpdate(sql, signature);
     }
@@ -197,7 +194,7 @@ public class DaoGenerator {
      */
     private Object processDynamicQuery(TargetMethod targetMethod) {
         String sql = getDynamicQuerySql(targetMethod);
-        sql = PlaceholderUtils.replace(sql, getParamMap(targetMethod));
+        sql = PlaceholderProcessor.replace(sql, getParamMap(targetMethod));
         System.out.println("sql: " + sql);
         return executeQuery(sql, targetMethod.getSignature());
     }
@@ -207,7 +204,7 @@ public class DaoGenerator {
      */
     private Object processDynamicUpdate(TargetMethod targetMethod) {
         String sql = getDynamicUpdateSql(targetMethod);
-        sql = PlaceholderUtils.replace(sql, getParamMap(targetMethod));
+        sql = PlaceholderProcessor.replace(sql, getParamMap(targetMethod));
         System.out.println("sql: " + sql);
         return executeUpdate(sql, targetMethod.getSignature());
     }

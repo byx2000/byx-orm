@@ -1,7 +1,7 @@
 package byx.orm;
 
 import byx.orm.annotation.DynamicQuery;
-import byx.orm.util.SqlBuilder;
+import byx.orm.core.SqlBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

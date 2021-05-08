@@ -1,6 +1,6 @@
 package byx.orm;
 
-import byx.orm.util.SqlBuilder;
+import byx.orm.core.SqlBuilder;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
