@@ -1,16 +1,17 @@
-package byx.orm.util;
+package byx.orm.core;
 
 import byx.orm.annotation.Column;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
- * 映射工具类
+ * 对象映射器
  *
  * @author byx
  */
-public class MapperUtils {
+public class ObjectMapper {
     /**
      * 将结果集的一行转换成对象
      * @param resultType 结果类型
@@ -39,7 +40,9 @@ public class MapperUtils {
 
     private static Object mapToJavaBean(Class<?> resultType, Map<String, Object> rowMap) {
         try {
-            Object instance = ReflectUtils.create(resultType);
+            Constructor<?> constructor = resultType.getConstructor();
+            constructor.setAccessible(true);
+            Object instance = constructor.newInstance();
             for (Field field : resultType.getDeclaredFields()) {
                 String column = field.isAnnotationPresent(Column.class)
                         ? field.getAnnotation(Column.class).value()

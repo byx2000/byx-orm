@@ -1,5 +1,7 @@
 package byx.orm.util;
 
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +51,15 @@ public class PlaceholderUtils {
         if (index == path.length) {
             return obj;
         }
-        return getValue(ReflectUtils.getProperty(obj, path[index]), path, index + 1);
+
+        try {
+            PropertyDescriptor pd = new PropertyDescriptor(path[index], obj.getClass());
+            Method getter = pd.getReadMethod();
+            getter.setAccessible(true);
+            return getValue(getter.invoke(obj), path, index + 1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static String getValueString(Object obj) {

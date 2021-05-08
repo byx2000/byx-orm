@@ -4,9 +4,8 @@ import byx.orm.annotation.DynamicQuery;
 import byx.orm.annotation.DynamicUpdate;
 import byx.orm.annotation.Query;
 import byx.orm.annotation.Update;
-import byx.orm.util.MapperUtils;
+import byx.orm.core.ObjectMapper;
 import byx.orm.util.PlaceholderUtils;
-import byx.orm.util.ReflectUtils;
 import byx.util.jdbc.JdbcUtils;
 import byx.util.jdbc.core.MapRowMapper;
 import byx.util.proxy.ProxyUtils;
@@ -15,7 +14,10 @@ import byx.util.proxy.core.MethodSignature;
 import byx.util.proxy.core.TargetMethod;
 
 import javax.sql.DataSource;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +124,7 @@ public class DaoGenerator {
             Type t = signature.getGenericReturnType();
             if (t instanceof ParameterizedType) {
                 Class<?> resultType = (Class<?>) ((ParameterizedType) t).getActualTypeArguments()[0];
-                return resultList.stream().map(m -> MapperUtils.mapToObject(resultType, m)).collect(Collectors.toList());
+                return resultList.stream().map(m -> ObjectMapper.mapToObject(resultType, m)).collect(Collectors.toList());
             } else {
                 throw new RuntimeException("泛型参数不正确");
             }
@@ -133,7 +135,7 @@ public class DaoGenerator {
             if (resultList.size() > 1) {
                 throw new RuntimeException("结果集行数大于1");
             }
-            return MapperUtils.mapToObject(returnType, resultList.get(0));
+            return ObjectMapper.mapToObject(returnType, resultList.get(0));
         }
     }
 
@@ -154,10 +156,15 @@ public class DaoGenerator {
     /**
      * 获取动态sql字符串
      */
-    private String getDynamicSql(Class<?> type, String methodName, Object[] params) {
+    private String getDynamicSql(Class<?> type, String methodName, Method daoMethod, Object[] params) {
         try {
-            Object instance = ReflectUtils.create(type);
-            return ReflectUtils.call(instance, methodName, params);
+            Constructor<?> constructor = type.getConstructor();
+            constructor.setAccessible(true);
+            Object instance = constructor.newInstance();
+
+            Method method = type.getMethod(methodName, daoMethod.getParameterTypes());
+            method.setAccessible(true);
+            return (String) method.invoke(instance, params);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -171,7 +178,7 @@ public class DaoGenerator {
         DynamicQuery dqa = signature.getAnnotation(DynamicQuery.class);
         Class<?> type = dqa.type();
         String methodName = "".equals(dqa.method()) ? signature.getName() : dqa.method();
-        return getDynamicSql(type, methodName, targetMethod.getParams());
+        return getDynamicSql(type, methodName, targetMethod.getMethod(), targetMethod.getParams());
     }
 
     /**
@@ -182,7 +189,7 @@ public class DaoGenerator {
         DynamicUpdate dua = signature.getAnnotation(DynamicUpdate.class);
         Class<?> type = dua.type();
         String methodName = "".equals(dua.method()) ? signature.getName() : dua.method();
-        return getDynamicSql(type, methodName, targetMethod.getParams());
+        return getDynamicSql(type, methodName, targetMethod.getMethod(), targetMethod.getParams());
     }
 
     /**
