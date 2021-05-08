@@ -46,6 +46,9 @@ public class QueryTest extends BaseTest {
 
         @Query("SELECT u_id, 123 AS value FROM t_user WHERE u_id = #{id}")
         User getById3(Integer id);
+
+        @Query("SELECT u_username FROM t_user WHERE u_id = #{id}")
+        String getUsername(Integer id);
     }
 
     @Test
@@ -160,5 +163,19 @@ public class QueryTest extends BaseTest {
         assertNull(user.getUsername());
         assertNull(user.getPassword());
         assertNull(user.getLevel());
+    }
+
+    @Test
+    public void test10() {
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+
+        String username = userDao.getUsername(1);
+        assertEquals("aaa", username);
+
+        username = userDao.getUsername(2);
+        assertEquals("bbb", username);
+
+        username = userDao.getUsername(3);
+        assertEquals("ccc", username);
     }
 }
