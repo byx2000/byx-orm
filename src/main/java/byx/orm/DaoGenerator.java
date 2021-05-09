@@ -35,6 +35,14 @@ public class DaoGenerator {
     }
 
     /**
+     * 创建DaoGenerator
+     * @param jdbcUtils jdbc工具类
+     */
+    public DaoGenerator(JdbcUtils jdbcUtils) {
+        this.jdbcUtils = jdbcUtils;
+    }
+
+    /**
      * 生成Dao接口的实现类
      * @param daoInterface Dao接口类型
      * @param <T> 接口类型

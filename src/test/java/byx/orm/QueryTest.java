@@ -1,6 +1,7 @@
 package byx.orm;
 
 import byx.orm.annotation.Query;
+import byx.util.jdbc.JdbcUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -53,7 +54,7 @@ public class QueryTest extends BaseTest {
 
     @Test
     public void test1() {
-        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+        UserDao userDao = new DaoGenerator(new JdbcUtils(dataSource())).generate(UserDao.class);
 
         List<User> users = userDao.listAll();
         assertEquals(3, users.size());

@@ -2,6 +2,7 @@ package byx.orm;
 
 import byx.orm.annotation.Query;
 import byx.orm.annotation.Update;
+import byx.util.jdbc.JdbcUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class UpdateTest extends BaseTest {
 
     @Test
     public void test1() {
-        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+        UserDao userDao = new DaoGenerator(new JdbcUtils(dataSource())).generate(UserDao.class);
 
         int row = userDao.insert("byx", "666", 100);
         assertEquals(1, row);

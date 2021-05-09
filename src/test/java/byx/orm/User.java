@@ -1,9 +1,7 @@
 package byx.orm;
 
 import byx.orm.annotation.Column;
-import byx.orm.annotation.Table;
 
-@Table("t_user")
 public class User {
     @Column("u_id")
     private Integer id;
