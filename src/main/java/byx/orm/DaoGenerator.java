@@ -8,13 +8,10 @@ import byx.orm.core.ObjectMapper;
 import byx.orm.core.PlaceholderProcessor;
 import byx.util.jdbc.JdbcUtils;
 import byx.util.jdbc.core.MapRowMapper;
-import byx.util.proxy.ProxyUtils;
-import byx.util.proxy.core.MethodInterceptor;
-import byx.util.proxy.core.MethodSignature;
-import byx.util.proxy.core.TargetMethod;
 
 import javax.sql.DataSource;
 import java.lang.reflect.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,32 +39,32 @@ public class DaoGenerator {
      * @param <T> 接口类型
      * @return 接口实现类
      */
+    @SuppressWarnings("unchecked")
     public <T> T generate(Class<T> daoInterface) {
-        return ProxyUtils.implement(daoInterface, new DaoMethodInterceptor());
+        return (T) Proxy.newProxyInstance(DaoGenerator.class.getClassLoader(),
+                new Class<?>[]{daoInterface},
+                new DaoInvocationHandler());
     }
 
     /**
-     * Dao的方法拦截器
+     * Dao方法拦截器
      */
-    private class DaoMethodInterceptor implements MethodInterceptor {
+    private class DaoInvocationHandler implements InvocationHandler {
         @Override
-        public Object intercept(TargetMethod targetMethod) {
-            // 获取方法签名
-            MethodSignature signature = targetMethod.getSignature();
-
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             // 计算方法参数Map
-            Map<String, Object> paramMap = getParamMap(targetMethod);
+            Map<String, Object> paramMap = getParamMap(method, args);
 
-            if (signature.hasAnnotation(Query.class)) {
-                return processQuery(signature, paramMap);
-            } else if (signature.hasAnnotation(Update.class)) {
-                return processUpdate(signature, paramMap);
-            } else if (signature.hasAnnotation(DynamicQuery.class)) {
-                return processDynamicQuery(targetMethod);
-            } else if (signature.hasAnnotation(DynamicUpdate.class)) {
-                return processDynamicUpdate(targetMethod);
+            if (method.isAnnotationPresent(Query.class)) {
+                return processQuery(method, paramMap);
+            } else if (method.isAnnotationPresent(Update.class)) {
+                return processUpdate(method, paramMap);
+            } else if (method.isAnnotationPresent(DynamicQuery.class)) {
+                return processDynamicQuery(method, args);
+            } else if (method.isAnnotationPresent(DynamicUpdate.class)) {
+                return processDynamicUpdate(method, args);
             } else {
-                throw new RuntimeException("方法定义不正确");
+                return method.invoke(proxy, args);
             }
         }
     }
@@ -75,12 +72,12 @@ public class DaoGenerator {
     /**
      * 获取参数映射表
      */
-    private Map<String, Object> getParamMap(TargetMethod targetMethod) {
-        String[] paramNames = targetMethod.getSignature().getParameterNames();
-        Object[] paramValues = targetMethod.getParams();
+    private Map<String, Object> getParamMap(Method method, Object[] params) {
+        Parameter[] parameters = method.getParameters();
+        String[] paramNames = Arrays.stream(parameters).map(Parameter::getName).toArray(String[]::new);
         Map<String, Object> map = new HashMap<>(10);
         for (int i = 0; i < paramNames.length; ++i) {
-            map.put(paramNames[i], paramValues[i]);
+            map.put(paramNames[i], params[i]);
         }
         return map;
     }
@@ -88,37 +85,37 @@ public class DaoGenerator {
     /**
      * 处理查询操作
      */
-    private Object processQuery(MethodSignature signature, Map<String, Object> paramMap) {
-        String sql = signature.getAnnotation(Query.class).value();
+    private Object processQuery(Method method, Map<String, Object> paramMap) {
+        String sql = method.getAnnotation(Query.class).value();
         sql = PlaceholderProcessor.replace(sql, paramMap);
         System.out.println("sql: " + sql);
-        return executeQuery(sql, signature);
+        return executeQuery(sql, method);
     }
 
     /**
      * 处理更新操作
      */
-    private Object processUpdate(MethodSignature signature, Map<String, Object> paramMap) {
-        String sql = signature.getAnnotation(Update.class).value();
+    private Object processUpdate(Method method, Map<String, Object> paramMap) {
+        String sql = method.getAnnotation(Update.class).value();
         sql = PlaceholderProcessor.replace(sql, paramMap);
         System.out.println("sql: " + sql);
-        return executeUpdate(sql, signature);
+        return executeUpdate(sql, method);
     }
 
     /**
      * 执行查询操作并返回结果
      */
-    private Object executeQuery(String sql, MethodSignature signature) {
+    private Object executeQuery(String sql, Method method) {
         // 执行sql，获取结果集
         List<Map<String, Object>> resultList = jdbcUtils.queryList(sql, new MapRowMapper());
 
         // 获取方法返回值类型
-        Class<?> returnType = signature.getReturnType();
+        Class<?> returnType = method.getReturnType();
 
         // 如果返回值是列表，则获取列表的泛型参数类型，并把结果集的每一行转换成该类型
         // 否则，直接把结果集的第一行转换成返回值类型
         if (returnType == List.class) {
-            Type t = signature.getGenericReturnType();
+            Type t = method.getGenericReturnType();
             if (t instanceof ParameterizedType) {
                 Class<?> resultType = (Class<?>) ((ParameterizedType) t).getActualTypeArguments()[0];
                 return resultList.stream().map(m -> ObjectMapper.mapToObject(resultType, m)).collect(Collectors.toList());
@@ -139,10 +136,10 @@ public class DaoGenerator {
     /**
      * 执行更新操作并返回结果
      */
-    private Object executeUpdate(String sql, MethodSignature signature) {
+    private Object executeUpdate(String sql, Method method) {
         // 如果方法返回值为void，则直接执行更新操作
         // 否则返回影响行数
-        if (signature.getReturnType() == void.class) {
+        if (method.getReturnType() == void.class) {
             jdbcUtils.update(sql);
             return null;
         } else {
@@ -170,42 +167,40 @@ public class DaoGenerator {
     /**
      * 获取动态查询的sql
      */
-    private String getDynamicQuerySql(TargetMethod targetMethod) {
-        MethodSignature signature = targetMethod.getSignature();
-        DynamicQuery dqa = signature.getAnnotation(DynamicQuery.class);
+    private String getDynamicQuerySql(Method method, Object[] params) {
+        DynamicQuery dqa = method.getAnnotation(DynamicQuery.class);
         Class<?> type = dqa.type();
-        String methodName = "".equals(dqa.method()) ? signature.getName() : dqa.method();
-        return getDynamicSql(type, methodName, targetMethod.getMethod(), targetMethod.getParams());
+        String methodName = "".equals(dqa.method()) ? method.getName() : dqa.method();
+        return getDynamicSql(type, methodName, method, params);
     }
 
     /**
      * 获取动态更新的sql
      */
-    private String getDynamicUpdateSql(TargetMethod targetMethod) {
-        MethodSignature signature = targetMethod.getSignature();
-        DynamicUpdate dua = signature.getAnnotation(DynamicUpdate.class);
+    private String getDynamicUpdateSql(Method method, Object[] params) {
+        DynamicUpdate dua = method.getAnnotation(DynamicUpdate.class);
         Class<?> type = dua.type();
-        String methodName = "".equals(dua.method()) ? signature.getName() : dua.method();
-        return getDynamicSql(type, methodName, targetMethod.getMethod(), targetMethod.getParams());
+        String methodName = "".equals(dua.method()) ? method.getName() : dua.method();
+        return getDynamicSql(type, methodName, method, params);
     }
 
     /**
      * 处理动态查询并返回结果
      */
-    private Object processDynamicQuery(TargetMethod targetMethod) {
-        String sql = getDynamicQuerySql(targetMethod);
-        sql = PlaceholderProcessor.replace(sql, getParamMap(targetMethod));
+    private Object processDynamicQuery(Method method, Object[] params) {
+        String sql = getDynamicQuerySql(method, params);
+        sql = PlaceholderProcessor.replace(sql, getParamMap(method, params));
         System.out.println("sql: " + sql);
-        return executeQuery(sql, targetMethod.getSignature());
+        return executeQuery(sql, method);
     }
 
     /**
      * 处理动态更新并返回结果
      */
-    private Object processDynamicUpdate(TargetMethod targetMethod) {
-        String sql = getDynamicUpdateSql(targetMethod);
-        sql = PlaceholderProcessor.replace(sql, getParamMap(targetMethod));
+    private Object processDynamicUpdate(Method method, Object[] params) {
+        String sql = getDynamicUpdateSql(method, params);
+        sql = PlaceholderProcessor.replace(sql, getParamMap(method, params));
         System.out.println("sql: " + sql);
-        return executeUpdate(sql, targetMethod.getSignature());
+        return executeUpdate(sql, method);
     }
 }
