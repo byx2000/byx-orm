@@ -6,6 +6,7 @@ import byx.orm.annotation.Query;
 import byx.orm.annotation.Update;
 import byx.orm.core.ObjectMapper;
 import byx.orm.core.PlaceholderProcessor;
+import byx.orm.exception.ByxOrmException;
 import byx.util.jdbc.JdbcUtils;
 import byx.util.jdbc.core.MapRowMapper;
 
@@ -51,7 +52,7 @@ public class DaoGenerator {
      */
     private class DaoInvocationHandler implements InvocationHandler {
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        public Object invoke(Object proxy, Method method, Object[] args) {
             // 计算方法参数Map
             Map<String, Object> paramMap = getParamMap(method, args);
 
@@ -64,7 +65,7 @@ public class DaoGenerator {
             } else if (method.isAnnotationPresent(DynamicUpdate.class)) {
                 return processDynamicUpdate(method, args);
             } else {
-                return method.invoke(proxy, args);
+                throw new ByxOrmException("Method not implemented: " + method);
             }
         }
     }
@@ -107,7 +108,12 @@ public class DaoGenerator {
      */
     private Object executeQuery(String sql, Method method) {
         // 执行sql，获取结果集
-        List<Map<String, Object>> resultList = jdbcUtils.queryList(sql, new MapRowMapper());
+        List<Map<String, Object>> resultList;
+        try {
+            resultList = jdbcUtils.queryList(sql, new MapRowMapper());
+        } catch (Exception e) {
+            throw new ByxOrmException("An error occurred while executing sql: " + sql, e);
+        }
 
         // 获取方法返回值类型
         Class<?> returnType = method.getReturnType();
@@ -115,19 +121,19 @@ public class DaoGenerator {
         // 如果返回值是列表，则获取列表的泛型参数类型，并把结果集的每一行转换成该类型
         // 否则，直接把结果集的第一行转换成返回值类型
         if (returnType == List.class) {
-            Type t = method.getGenericReturnType();
-            if (t instanceof ParameterizedType) {
+            try {
+                Type t = method.getGenericReturnType();
                 Class<?> resultType = (Class<?>) ((ParameterizedType) t).getActualTypeArguments()[0];
                 return resultList.stream().map(m -> ObjectMapper.mapToObject(resultType, m)).collect(Collectors.toList());
-            } else {
-                throw new RuntimeException("泛型参数不正确");
+            } catch (Exception e) {
+                throw new ByxOrmException("Unable to read generic parameters.", e);
             }
         } else {
             if (resultList.isEmpty()) {
                 return null;
             }
             if (resultList.size() > 1) {
-                throw new RuntimeException("结果集行数大于1");
+                throw new ByxOrmException("The number of rows in the result set is greater than 1.");
             }
             return ObjectMapper.mapToObject(returnType, resultList.get(0));
         }
@@ -139,11 +145,14 @@ public class DaoGenerator {
     private Object executeUpdate(String sql, Method method) {
         // 如果方法返回值为void，则直接执行更新操作
         // 否则返回影响行数
-        if (method.getReturnType() == void.class) {
-            jdbcUtils.update(sql);
+        try {
+            int rows = jdbcUtils.update(sql);
+            if (method.getReturnType() != void.class) {
+                return rows;
+            }
             return null;
-        } else {
-            return jdbcUtils.update(sql);
+        } catch (Exception e) {
+            throw new ByxOrmException("An error occurred while executing sql: " + sql, e);
         }
     }
 
@@ -160,7 +169,7 @@ public class DaoGenerator {
             method.setAccessible(true);
             return (String) method.invoke(instance, params);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ByxOrmException("Cannot get dynamic sql of: " + daoMethod, e);
         }
     }
 

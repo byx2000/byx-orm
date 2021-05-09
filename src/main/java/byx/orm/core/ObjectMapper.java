@@ -1,6 +1,7 @@
 package byx.orm.core;
 
 import byx.orm.annotation.Column;
+import byx.orm.exception.ByxOrmException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -29,10 +30,10 @@ public class ObjectMapper {
 
     private static Object mapToPrimitive(Map<String, Object> rowMap) {
         if (rowMap.isEmpty()) {
-            throw new RuntimeException("结果集为空");
+            throw new ByxOrmException("Result set is empty: " + rowMap);
         }
         if (rowMap.size() > 1) {
-            throw new RuntimeException("列数大于1");
+            throw new ByxOrmException("Count of columns is greater than 1: " + rowMap);
         }
 
         return rowMap.values().toArray()[0];
@@ -54,7 +55,7 @@ public class ObjectMapper {
             }
             return instance;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ByxOrmException("Error occurs while mapping to object: " + resultType, e);
         }
     }
 }
