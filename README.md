@@ -229,3 +229,111 @@ User{id=2, username='bbb', password='456'}
 User{id=3, username='ccc', password='789'}
 User{id=4, username='byx', password='666'}
 ```
+
+## @Query注解
+
+该注解用于指定查询操作的SQL，与MyBatis的`@Select`类似，支持`#{...}`占位符。
+
+使用`@Query`标注的方法的返回值可以为以下形式：
+
+|返回值类型|说明|
+|---|---|
+|基本类型或`String`|查询单个值或结果总数|
+|JavaBean|查询单行，并把该行数据转换成JavaBean|
+|`List`|查询多行，每行封装成一个JavaBean|
+
+例子：
+
+```java
+public interface UserDao {
+    // 查询所有用户
+    @Query("SELECT * FROM user")
+    List<User> listAll();
+
+    // 根据id查询用户
+    @Query("SELECT * FROM user WHERE id = #{id}")
+    User getById(Integer id);
+
+    // 查询用户总数
+    @Query("SELECT COUNT(0) FROM user")
+    int count();    
+}
+```
+
+## @Update注解
+
+该注解用于指定更新操作的SQL，更新操作包括`insert`、`update`、`delete`，与MyBatis的`Update`、`Insert`、`Delete`类似，支持`#{...}`占位符。
+
+使用`@Update`标注的方法的返回值可以为以下形式：
+
+|返回值类型|说明|
+|---|---|
+|`int`|返回受影响行数|
+|`void`|直接执行操作，什么也不返回|
+
+例子：
+
+```java
+public interface UserDao {
+    // 插入用户
+    @Update("INSERT INTO user(username, password) VALUES(#{user.username}, #{user.password})")
+    int insert(User user);
+
+    // 删除用户
+    @Update("DELETE FROM user WHERE id = #{id}")
+    void delete(Integer id);
+
+    // 更新用户名
+    @Update("UPDATE user SET username = #{username} WHERE id = #{id}")
+    void update(Integer id, String username);
+}
+```
+
+## @DynamicQuery注解
+
+该注解用于动态生成查询SQL字符串，与MyBatis中的`SelectProvider`类似，需要指定以下两个属性：
+
+* `type`: 生成SQL字符串的类
+* `method`: 生成SQL字符串的方法名
+
+`type`中的`method`方法需要接收与对应的Dao方法相同的参数列表，并返回`String`类型。
+
+例子：
+
+```java
+public interface UserDao {
+    // 根据用户名或密码查询用户
+    @DynamicQuery(type = SqlProvider.class, method = "query")
+    List<User> query(String username, String password);
+
+    class SqlProvider {
+        /**
+         * 提供动态查询SQL
+         */
+        public String query(String username, String password) {
+            return new SqlBuilder(){
+                {
+                    select("*");
+                    from("user");
+                    if (username != null) {
+                        where("u_username = #{username}");
+                    }
+                    if (password != null) {
+                        where("u_password = #{password}");
+                    }
+                }
+            }.build();
+        }
+    }
+}
+```
+
+注：
+
+1. `DynamicQuery`的`type`指定的类必须要有默认构造函数
+2. 如果`DynamicQuery`不指定`method`，则默认使用被标注方法的方法名
+3. 可以使用`SqlBuilder`来拼接SQL字符串，用法与MyBatis的`SQL`类似
+
+## @DynamicUpdate注解
+
+与`@DynamicQuery`类似，用于动态生成更新SQL字符串，此处不再赘述。
