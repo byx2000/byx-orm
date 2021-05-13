@@ -307,9 +307,6 @@ public interface UserDao {
     List<User> query(String username, String password);
 
     class SqlProvider {
-        /**
-         * 提供动态查询SQL
-         */
         public String query(String username, String password) {
             return new SqlBuilder(){
                 {
@@ -333,7 +330,3 @@ public interface UserDao {
 1. `DynamicQuery`的`type`指定的类必须要有默认构造函数
 2. 如果`DynamicQuery`不指定`method`，则默认使用被标注方法的方法名
 3. 可以使用`SqlBuilder`来拼接SQL字符串，用法与MyBatis的`SQL`类似
-
-## @DynamicUpdate注解
-
-与`@DynamicQuery`类似，用于动态生成更新SQL字符串，此处不再赘述。
