@@ -60,20 +60,24 @@ public class DaoGenerator {
      */
     private class DaoInvocationHandler implements InvocationHandler {
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) {
-            // 计算方法参数Map
-            Map<String, Object> paramMap = getParamMap(method, args);
-
-            if (method.isAnnotationPresent(Query.class)) {
-                return processQuery(method, paramMap);
-            } else if (method.isAnnotationPresent(Update.class)) {
-                return processUpdate(method, paramMap);
-            } else if (method.isAnnotationPresent(DynamicQuery.class)) {
-                return processDynamicQuery(method, args);
-            } else if (method.isAnnotationPresent(DynamicUpdate.class)) {
-                return processDynamicUpdate(method, args);
+        public Object invoke(Object proxy, Method method, Object[] args) throws Exception {
+            if (Object.class.equals(method.getDeclaringClass())) {
+                return method.invoke(this, args);
             } else {
-                throw new ByxOrmException("Method not implemented: " + method);
+                // 计算方法参数Map
+                Map<String, Object> paramMap = getParamMap(method, args);
+
+                if (method.isAnnotationPresent(Query.class)) {
+                    return processQuery(method, paramMap);
+                } else if (method.isAnnotationPresent(Update.class)) {
+                    return processUpdate(method, paramMap);
+                } else if (method.isAnnotationPresent(DynamicQuery.class)) {
+                    return processDynamicQuery(method, args);
+                } else if (method.isAnnotationPresent(DynamicUpdate.class)) {
+                    return processDynamicUpdate(method, args);
+                } else {
+                    throw new ByxOrmException("Method not implemented: " + method);
+                }
             }
         }
     }

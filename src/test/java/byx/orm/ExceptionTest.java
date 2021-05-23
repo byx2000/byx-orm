@@ -119,8 +119,8 @@ public class ExceptionTest extends BaseTest {
     @Test
     public void test11() {
         UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
-        assertThrows(ByxOrmException.class, userDao::toString);
-        assertThrows(ByxOrmException.class, userDao::hashCode);
+        System.out.println(userDao.toString());
+        System.out.println(userDao.hashCode());
     }
 
     @Test
