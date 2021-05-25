@@ -1,5 +1,7 @@
 package byx.orm.core;
 
+import byx.orm.exception.ByxOrmException;
+
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -43,6 +45,9 @@ public class PlaceholderProcessor {
 
     private static Object getPlaceholderValue(Map<String, Object> paramMap, String expr) {
         String[] path = expr.split("\\.");
+        if (!paramMap.containsKey(path[0])) {
+            throw new ByxOrmException("The key " + path[0] + " is not exist in parameter map: " + paramMap);
+        }
         Object obj = paramMap.get(path[0]);
         return getValue(obj, path, 1);
     }
@@ -58,7 +63,7 @@ public class PlaceholderProcessor {
             getter.setAccessible(true);
             return getValue(getter.invoke(obj), path, index + 1);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ByxOrmException("Error when get property " + path[index] + " of " + obj.getClass(), e);
         }
     }
 

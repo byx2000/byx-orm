@@ -46,6 +46,12 @@ public class ExceptionTest extends BaseTest {
         @Query("SELECT u_id, u_username FROM t_user WHERE u_id = 1")
         String get1();
 
+        @Query("SELECT * FROM t_user WHERE username = #{username}")
+        String get2();
+
+        @Query("SELECT u_username FROM t_user WHERE id = #{username.id}")
+        String get3(String username);
+
         class SqlProvider {
             public String list7() {
                 return "sdjsvgfshdjhdgkhabgfjd";
@@ -127,5 +133,17 @@ public class ExceptionTest extends BaseTest {
     public void test12() {
         UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
         assertThrows(ByxOrmException.class, userDao::get1);
+    }
+
+    @Test
+    public void test13() {
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+        assertThrows(ByxOrmException.class, userDao::get2);
+    }
+
+    @Test
+    public void test14() {
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+        assertThrows(ByxOrmException.class, () -> userDao.get3("aaa"));
     }
 }
