@@ -50,6 +50,9 @@ public class QueryTest extends BaseTest {
 
         @Query("SELECT u_username FROM t_user WHERE u_id = #{id}")
         String getUsername(Integer id);
+
+        @Query("SELECT * FROM t_user ORDER BY ${orderBy}")
+        List<User> listWithOrder(String orderBy);
     }
 
     @Test
@@ -178,5 +181,16 @@ public class QueryTest extends BaseTest {
 
         username = userDao.getUsername(3);
         assertEquals("ccc", username);
+    }
+
+    @Test
+    public void test11() {
+        UserDao userDao = new DaoGenerator(dataSource()).generate(UserDao.class);
+        List<User> users = userDao.listWithOrder("level");
+        System.out.println(users);
+        assertEquals(3, users.size());
+        assertEquals(2, users.get(0).getId());
+        assertEquals(3, users.get(1).getId());
+        assertEquals(1, users.get(2).getId());
     }
 }

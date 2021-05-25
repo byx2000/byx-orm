@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * @author byx
  */
 public class PlaceholderProcessor {
-    private static final Pattern PATTERN = Pattern.compile("#\\{([a-zA-Z]|_)([0-9a-zA-Z]|_|\\.)*}");
+    private static final Pattern PATTERN = Pattern.compile("[#$]\\{([a-zA-Z]|_)([0-9a-zA-Z]|_|\\.)*}");
 
     /**
      * 替换sql中的占位符
@@ -27,8 +27,13 @@ public class PlaceholderProcessor {
     public static String replace(String sql, Map<String, Object> paramMap) {
         List<String> placeholders = getPlaceholders(sql);
         for (String expr : placeholders) {
-            Object value = getPlaceholderValue(paramMap, expr);
-            sql = sql.replace("#{" + expr + "}", getValueString(value));
+            String key = expr.substring(2, expr.length() - 1);
+            Object value = getPlaceholderValue(paramMap, key);
+            if (expr.startsWith("#")) {
+                sql = sql.replace(expr, getValueString(value));
+            } else if (expr.startsWith("$")) {
+                sql = sql.replace(expr, value.toString());
+            }
         }
         return sql;
     }
@@ -38,7 +43,7 @@ public class PlaceholderProcessor {
         Matcher matcher = PATTERN.matcher(sql);
         while (matcher.find()) {
             String s = matcher.group();
-            result.add(s.substring(2, s.length() - 1));
+            result.add(s);
         }
         return result;
     }
