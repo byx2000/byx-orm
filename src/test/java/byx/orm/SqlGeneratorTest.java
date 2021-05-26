@@ -33,6 +33,11 @@ public class SqlGeneratorTest {
             return (isDesc == null || !isDesc) ? "ASC" : "DESC";
         }
 
+        @Sql("length <= #{length}")
+        public Integer getLength() {
+            return username == null ? null : username.length();
+        }
+
         public String getUsername() {
             return username;
         }
@@ -119,6 +124,53 @@ public class SqlGeneratorTest {
         }
     }
 
+    private static class Range {
+        private Integer min;
+        private Integer max;
+
+        public Integer getMin() {
+            return min;
+        }
+
+        public void setMin(Integer min) {
+            this.min = min;
+        }
+
+        public Integer getMax() {
+            return max;
+        }
+
+        public void setMax(Integer max) {
+            this.max = max;
+        }
+    }
+
+    @Prefix("SELECT * FROM users WHERE ")
+    @Delimiter(" AND ")
+    private static class QueryObject3 {
+        @Sql("id = #{id}")
+        private Integer id;
+
+        @Sql("level BETWEEN #{levelRange.min} AND #{levelRange.max}")
+        private Range levelRange;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public Range getLevelRange() {
+            return levelRange;
+        }
+
+        public void setLevelRange(Range levelRange) {
+            this.levelRange = levelRange;
+        }
+    }
+
     @Test
     public void test1() {
         QueryObject1 qo1 = new QueryObject1();
@@ -132,7 +184,7 @@ public class SqlGeneratorTest {
 
         String sql = SqlGenerator.generate(qo1);
         System.out.println(sql);
-        assertEquals("SELECT * FROM users WHERE username = 'aaa' AND password = '123' AND level >= 20 AND level <= 50 AND (desc LIKE '%byx%' OR name LIKE '%byx%') ORDER BY time DESC",
+        assertEquals("SELECT * FROM users WHERE username = 'aaa' AND password = '123' AND level >= 20 AND level <= 50 AND (desc LIKE '%byx%' OR name LIKE '%byx%') AND length <= 3 ORDER BY time DESC",
                 sql);
     }
 
@@ -157,5 +209,29 @@ public class SqlGeneratorTest {
         String sql = SqlGenerator.generate(qo2);
         System.out.println(sql);
         assertEquals("SELECT * FROM users WHERE username = 'bbb' AND password = '456' AND keyword = 'bbb 456'", sql);
+    }
+
+    @Test
+    public void test4() {
+        Range range = new Range();
+        range.setMin(10);
+        range.setMax(20);
+        QueryObject3 qo3 = new QueryObject3();
+        qo3.setId(1001);
+        qo3.setLevelRange(range);
+
+        String sql = SqlGenerator.generate(qo3);
+        System.out.println(sql);
+        assertEquals("SELECT * FROM users WHERE id = 1001 AND level BETWEEN 10 AND 20", sql);
+    }
+
+    @Test
+    public void test5() {
+        QueryObject3 qo3 = new QueryObject3();
+        qo3.setId(1001);
+
+        String sql = SqlGenerator.generate(qo3);
+        System.out.println(sql);
+        assertEquals("SELECT * FROM users WHERE id = 1001", sql);
     }
 }
