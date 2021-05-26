@@ -1,5 +1,7 @@
 package byx.orm.core;
 
+import byx.orm.util.StringUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +31,7 @@ public class SqlBuilder {
 
         @Override
         public String toString() {
-            return prefix + String.join(delimiter, items) + suffix;
+            return StringUtils.concat(prefix, suffix, delimiter, items);
         }
     }
 
