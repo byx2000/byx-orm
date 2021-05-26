@@ -1,4 +1,4 @@
-package byx.orm.core;
+package byx.orm.util;
 
 import byx.orm.exception.ByxOrmException;
 
@@ -11,36 +11,44 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 占位符处理器
+ * 占位符工具类
+ * 支持#{...}和${...}两种占位符
+ * 具体含义与MyBatis中的占位符相同
  *
  * @author byx
  */
-public class PlaceholderProcessor {
+public class PlaceholderUtils {
+    /**
+     * 匹配#{...}或${...}的占位符表达式
+     */
     private static final Pattern PATTERN = Pattern.compile("[#$]\\{([a-zA-Z]|_)([0-9a-zA-Z]|_|\\.)*}");
 
     /**
-     * 替换sql中的占位符
-     * @param sql 带占位符的sql字符串
+     * 替换字符串中的占位符
+     * @param str 带占位符的sql字符串
      * @param paramMap 参数表
      * @return 不带占位符的sql字符串
      */
-    public static String replace(String sql, Map<String, Object> paramMap) {
-        List<String> placeholders = getPlaceholders(sql);
-        for (String expr : placeholders) {
-            String key = expr.substring(2, expr.length() - 1);
+    public static String replace(String str, Map<String, Object> paramMap) {
+        List<String> placeholders = getPlaceholders(str);
+        for (String p : placeholders) {
+            String key = p.substring(2, p.length() - 1);
             Object value = getPlaceholderValue(paramMap, key);
-            if (expr.startsWith("#")) {
-                sql = sql.replace(expr, getValueString(value));
-            } else if (expr.startsWith("$")) {
-                sql = sql.replace(expr, value.toString());
+            if (p.startsWith("#")) {
+                str = str.replace(p, getValueString(value));
+            } else if (p.startsWith("$")) {
+                str = str.replace(p, value.toString());
             }
         }
-        return sql;
+        return str;
     }
 
-    private static List<String> getPlaceholders(String sql) {
+    /**
+     * 获取字符串中的所有占位符
+     */
+    private static List<String> getPlaceholders(String str) {
         List<String> result = new ArrayList<>();
-        Matcher matcher = PATTERN.matcher(sql);
+        Matcher matcher = PATTERN.matcher(str);
         while (matcher.find()) {
             String s = matcher.group();
             result.add(s);
@@ -48,6 +56,9 @@ public class PlaceholderProcessor {
         return result;
     }
 
+    /**
+     * 计算占位符表达式的值
+     */
     private static Object getPlaceholderValue(Map<String, Object> paramMap, String expr) {
         String[] path = expr.split("\\.");
         if (!paramMap.containsKey(path[0])) {
@@ -72,6 +83,9 @@ public class PlaceholderProcessor {
         }
     }
 
+    /**
+     * 将Java中的对象转换为Sql中的字符串
+     */
     private static String getValueString(Object obj) {
         Class<?> type = obj.getClass();
         if (type == String.class || type == Character.class) {

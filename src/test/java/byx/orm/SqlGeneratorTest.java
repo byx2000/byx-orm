@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SqlGeneratorTest {
     @Prefix("SELECT * FROM users WHERE ")
     @Delimiter(" AND ")
-    @Suffix(" ORDER BY ${orderBy} ${isDesc}")
+    @Suffix(" ORDER BY ${orderBy} ${orderType}")
     private static class QueryObject1 {
         @Sql("username = #{username}")
         private String username;
@@ -27,13 +27,10 @@ public class SqlGeneratorTest {
 
         private String orderBy;
 
-        @Convert(type = Converter.class, method = "isDescToString")
         private Boolean isDesc;
 
-        private static class Converter {
-            public String isDescToString(Boolean isDesc) {
-                return (isDesc == null || !isDesc) ? "ASC" : "DESC";
-            }
+        public String getOrderType() {
+            return (isDesc == null || !isDesc) ? "ASC" : "DESC";
         }
 
         public String getUsername() {
@@ -101,13 +98,8 @@ public class SqlGeneratorTest {
         private String username;
         private String password;
 
-        @Convert(type = Converter.class, params = {"username", "password"})
-        private String keyword;
-
-        private static class Converter {
-            public String keyword(String username, String password) {
-                return username + " " + password;
-            }
+        public String getKeyword() {
+            return username + " " + password;
         }
 
         public String getUsername() {
@@ -125,14 +117,6 @@ public class SqlGeneratorTest {
         public void setPassword(String password) {
             this.password = password;
         }
-
-        public String getKeyword() {
-            return keyword;
-        }
-
-        public void setKeyword(String keyword) {
-            this.keyword = keyword;
-        }
     }
 
     @Test
@@ -146,7 +130,7 @@ public class SqlGeneratorTest {
         qo1.setOrderBy("time");
         qo1.setDesc(true);
 
-        String sql = SqlGenerator.getSql(qo1);
+        String sql = SqlGenerator.generate(qo1);
         System.out.println(sql);
         assertEquals("SELECT * FROM users WHERE username = 'aaa' AND password = '123' AND level >= 20 AND level <= 50 AND (desc LIKE '%byx%' OR name LIKE '%byx%') ORDER BY time DESC",
                 sql);
@@ -159,7 +143,7 @@ public class SqlGeneratorTest {
         qo1.setMaxVal(100);
         qo1.setOrderBy("level");
 
-        String sql = SqlGenerator.getSql(qo1);
+        String sql = SqlGenerator.generate(qo1);
         System.out.println(sql);
         assertEquals("SELECT * FROM users WHERE password = '123456' AND level <= 100 ORDER BY level ASC", sql);
     }
@@ -170,7 +154,7 @@ public class SqlGeneratorTest {
         qo2.setUsername("bbb");
         qo2.setPassword("456");
 
-        String sql = SqlGenerator.getSql(qo2);
+        String sql = SqlGenerator.generate(qo2);
         System.out.println(sql);
         assertEquals("SELECT * FROM users WHERE username = 'bbb' AND password = '456' AND keyword = 'bbb 456'", sql);
     }

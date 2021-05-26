@@ -1,10 +1,13 @@
 package byx.orm.core;
 
-import byx.orm.annotation.*;
+import byx.orm.annotation.Delimiter;
+import byx.orm.annotation.Prefix;
+import byx.orm.annotation.Sql;
+import byx.orm.annotation.Suffix;
+import byx.orm.util.PlaceholderUtils;
 import byx.orm.util.StringUtils;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
+import java.beans.Introspector;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,122 +18,116 @@ import java.util.stream.Collectors;
  * @author byx
  */
 public class SqlGenerator {
-    public static String getSql(Object obj) {
+    /**
+     * 生成对象对应的sql字符串
+     * @param obj 对象
+     * @return sql字符串
+     */
+    public static String generate(Object obj) {
         Class<?> type = obj.getClass();
+
         Map<String, Object> paramMap = getParamMap(obj);
 
         if (type.isAnnotationPresent(Sql.class)) {
             String sql = type.getAnnotation(Sql.class).value();
-            return PlaceholderProcessor.replace(sql, paramMap);
+            return PlaceholderUtils.replace(sql, paramMap);
         } else {
-            String prefix = PlaceholderProcessor.replace(getPrefixExpr(type), paramMap);
-            String suffix = PlaceholderProcessor.replace(getSuffixExpr(type), paramMap);
-            String delimiter = PlaceholderProcessor.replace(getDelimiterExpr(type), paramMap);
-            List<String> strs = getListExpr(obj).stream()
-                    .map(s -> PlaceholderProcessor.replace(s, paramMap))
+            String prefix = getPrefix(obj, paramMap);
+            String suffix = getSuffix(obj, paramMap);
+            String delimiter = getDelimiter(obj, paramMap);
+            List<String> strings = getSqlTemplates(obj).stream()
+                    .map(s -> PlaceholderUtils.replace(s, paramMap))
                     .collect(Collectors.toList());
-            return StringUtils.concat(prefix, suffix, delimiter, strs);
+            return StringUtils.concat(prefix, suffix, delimiter, strings);
         }
-
-
     }
 
+    /**
+     * 获取参数表
+     */
     private static Map<String, Object> getParamMap(Object obj) {
         try {
-            Map<String, Object> paramMap = new HashMap<>();
-            for (Field field : obj.getClass().getDeclaredFields()) {
-                paramMap.put(field.getName(), getFieldValue(obj, field));
-            }
+            Map<String, Object> paramMap = new HashMap<>(10);
+            Class<?> type = obj.getClass();
+
+            Arrays.stream(Introspector.getBeanInfo(type).getPropertyDescriptors()).forEach(d -> {
+                try {
+                    Method reader = d.getReadMethod();
+                    if (reader != null) {
+                        reader.setAccessible(true);
+                        paramMap.put(d.getName(), reader.invoke(obj));
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
             return paramMap;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static String getPrefixExpr(Class<?> type) {
+    /**
+     * 获取前缀
+     */
+    private static String getPrefix(Object obj, Map<String, Object> paramMap) {
+        Class<?> type = obj.getClass();
         if (type.isAnnotationPresent(Prefix.class)) {
-            return type.getAnnotation(Prefix.class).value();
+            return PlaceholderUtils.replace(type.getAnnotation(Prefix.class).value(), paramMap);
         }
         return "";
     }
 
-    private static String getSuffixExpr(Class<?> type) {
+    /**
+     * 获取后缀
+     */
+    private static String getSuffix(Object obj, Map<String, Object> paramMap) {
+        Class<?> type = obj.getClass();
         if (type.isAnnotationPresent(Suffix.class)) {
-            return type.getAnnotation(Suffix.class).value();
+            return PlaceholderUtils.replace(type.getAnnotation(Suffix.class).value(), paramMap);
         }
         return "";
     }
 
-    private static String getDelimiterExpr(Class<?> type) {
+    /**
+     *
+     * 获取分隔符
+     */
+    private static String getDelimiter(Object obj, Map<String, Object> paramMap) {
+        Class<?> type = obj.getClass();
         if (type.isAnnotationPresent(Delimiter.class)) {
-            return type.getAnnotation(Delimiter.class).value();
+            return PlaceholderUtils.replace(type.getAnnotation(Delimiter.class).value(), paramMap);
         }
         return "";
     }
 
-    private static List<Field> getFields(Class<?> type, String[] params) {
-        try {
-            List<Field> fields = new ArrayList<>();
-            for (String p : params) {
-                fields.add(type.getDeclaredField(p));
-            }
-            return fields;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static List<String> getListExpr(Object obj) {
-        try {
-            List<String> strs = new ArrayList<>();
-            for (Field field : obj.getClass().getDeclaredFields()) {
-                field.setAccessible(true);
-                if (field.get(obj) != null) {
-                    if (field.isAnnotationPresent(Sql.class)) {
-                        strs.add(field.getAnnotation(Sql.class).value());
-                    }
+    /**
+     * 获取待处理的sql模板列表
+     */
+    private static List<String> getSqlTemplates(Object obj) {
+        List<String> templates = new ArrayList<>();
+        Class<?> type = obj.getClass();
+        Arrays.stream(type.getDeclaredFields()).filter(f -> f.isAnnotationPresent(Sql.class)).forEach(f -> {
+            try {
+                f.setAccessible(true);
+                if (f.get(obj) != null) {
+                    templates.add(f.getAnnotation(Sql.class).value());
                 }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-            return strs;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static Object getFieldValue(Object obj, Field field) {
-        try {
-            field.setAccessible(true);
-            if (field.isAnnotationPresent(Convert.class)) {
-                Convert a = field.getAnnotation(Convert.class);
-                Class<?> provider = a.type();
-                String method = "".equals(a.method()) ? field.getName() : a.method();
-                String[] params = a.params();
-
-                List<Field> fields;
-                if (params.length == 0) {
-                    fields = Collections.singletonList(field);
-                } else {
-                    fields = getFields(obj.getClass(), params);
-                }
-
-                Constructor<?> constructor = provider.getDeclaredConstructor();
-                constructor.setAccessible(true);
-                Object instance = constructor.newInstance();
-                Method m = provider.getMethod(method, fields.stream().map(Field::getType).toArray(Class<?>[]::new));
+        });
+        Arrays.stream(type.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Sql.class)).forEach(m -> {
+            try {
                 m.setAccessible(true);
-                return m.invoke(instance, fields.stream().map(f -> {
-                    try {
-                        f.setAccessible(true);
-                        return f.get(obj);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                }).toArray());
-            } else {
-                return field.get(obj);
+                if (m.invoke(obj) != null) {
+                    templates.add(m.getAnnotation(Sql.class).value());
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        });
+        return templates;
     }
 }

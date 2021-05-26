@@ -5,7 +5,7 @@ import byx.orm.annotation.DynamicUpdate;
 import byx.orm.annotation.Query;
 import byx.orm.annotation.Update;
 import byx.orm.core.ObjectMapper;
-import byx.orm.core.PlaceholderProcessor;
+import byx.orm.util.PlaceholderUtils;
 import byx.orm.exception.ByxOrmException;
 import byx.util.jdbc.JdbcUtils;
 import byx.util.jdbc.core.MapRowMapper;
@@ -100,7 +100,7 @@ public class DaoGenerator {
      */
     private Object processQuery(Method method, Map<String, Object> paramMap) {
         String sql = method.getAnnotation(Query.class).value();
-        sql = PlaceholderProcessor.replace(sql, paramMap);
+        sql = PlaceholderUtils.replace(sql, paramMap);
         System.out.println("sql: " + sql);
         return executeQuery(sql, method);
     }
@@ -110,7 +110,7 @@ public class DaoGenerator {
      */
     private Object processUpdate(Method method, Map<String, Object> paramMap) {
         String sql = method.getAnnotation(Update.class).value();
-        sql = PlaceholderProcessor.replace(sql, paramMap);
+        sql = PlaceholderUtils.replace(sql, paramMap);
         System.out.println("sql: " + sql);
         return executeUpdate(sql, method);
     }
@@ -210,7 +210,7 @@ public class DaoGenerator {
      */
     private Object processDynamicQuery(Method method, Object[] params) {
         String sql = getDynamicQuerySql(method, params);
-        sql = PlaceholderProcessor.replace(sql, getParamMap(method, params));
+        sql = PlaceholderUtils.replace(sql, getParamMap(method, params));
         System.out.println("sql: " + sql);
         return executeQuery(sql, method);
     }
@@ -220,7 +220,7 @@ public class DaoGenerator {
      */
     private Object processDynamicUpdate(Method method, Object[] params) {
         String sql = getDynamicUpdateSql(method, params);
-        sql = PlaceholderProcessor.replace(sql, getParamMap(method, params));
+        sql = PlaceholderUtils.replace(sql, getParamMap(method, params));
         System.out.println("sql: " + sql);
         return executeUpdate(sql, method);
     }
