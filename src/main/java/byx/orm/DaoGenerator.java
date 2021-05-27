@@ -1,10 +1,8 @@
 package byx.orm;
 
-import byx.orm.annotation.DynamicQuery;
-import byx.orm.annotation.DynamicUpdate;
-import byx.orm.annotation.Query;
-import byx.orm.annotation.Update;
+import byx.orm.annotation.*;
 import byx.orm.core.ObjectMapper;
+import byx.orm.core.SqlGenerator;
 import byx.orm.util.PlaceholderUtils;
 import byx.orm.exception.ByxOrmException;
 import byx.util.jdbc.JdbcUtils;
@@ -75,6 +73,8 @@ public class DaoGenerator {
                     return processDynamicQuery(method, args);
                 } else if (method.isAnnotationPresent(DynamicUpdate.class)) {
                     return processDynamicUpdate(method, args);
+                } else if (method.isAnnotationPresent(SqlObject.class)) {
+                    return processSqlObject(method, args);
                 } else {
                     throw new ByxOrmException("Method not implemented: " + method);
                 }
@@ -101,7 +101,7 @@ public class DaoGenerator {
     private Object processQuery(Method method, Map<String, Object> paramMap) {
         String sql = method.getAnnotation(Query.class).value();
         sql = PlaceholderUtils.replace(sql, paramMap);
-        System.out.println("sql: " + sql);
+        //System.out.println("sql: " + sql);
         return executeQuery(sql, method);
     }
 
@@ -111,7 +111,7 @@ public class DaoGenerator {
     private Object processUpdate(Method method, Map<String, Object> paramMap) {
         String sql = method.getAnnotation(Update.class).value();
         sql = PlaceholderUtils.replace(sql, paramMap);
-        System.out.println("sql: " + sql);
+        //System.out.println("sql: " + sql);
         return executeUpdate(sql, method);
     }
 
@@ -119,6 +119,7 @@ public class DaoGenerator {
      * 执行查询操作并返回结果
      */
     private Object executeQuery(String sql, Method method) {
+        System.out.println("sql: " + sql);
         // 执行sql，获取结果集
         List<Map<String, Object>> resultList;
         try {
@@ -155,6 +156,7 @@ public class DaoGenerator {
      * 执行更新操作并返回结果
      */
     private Object executeUpdate(String sql, Method method) {
+        System.out.println("sql: " + sql);
         // 如果方法返回值为void，则直接执行更新操作
         // 否则返回影响行数
         try {
@@ -211,7 +213,7 @@ public class DaoGenerator {
     private Object processDynamicQuery(Method method, Object[] params) {
         String sql = getDynamicQuerySql(method, params);
         sql = PlaceholderUtils.replace(sql, getParamMap(method, params));
-        System.out.println("sql: " + sql);
+        //System.out.println("sql: " + sql);
         return executeQuery(sql, method);
     }
 
@@ -221,7 +223,22 @@ public class DaoGenerator {
     private Object processDynamicUpdate(Method method, Object[] params) {
         String sql = getDynamicUpdateSql(method, params);
         sql = PlaceholderUtils.replace(sql, getParamMap(method, params));
-        System.out.println("sql: " + sql);
+        //System.out.println("sql: " + sql);
         return executeUpdate(sql, method);
+    }
+
+    /**
+     * 处理Sql对象
+     */
+    private Object processSqlObject(Method method, Object[] params) {
+        if (params.length != 1) {
+            throw new ByxOrmException("The param count of @SqlObject method must be 1: " + method);
+        }
+        String sql = SqlGenerator.generate(params[0]);
+        if (sql.trim().startsWith("SELECT")) {
+            return executeQuery(sql, method);
+        } else {
+            return executeUpdate(sql, method);
+        }
     }
 }
