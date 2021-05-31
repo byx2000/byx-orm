@@ -24,4 +24,10 @@ public interface SqlGenerator {
      * @return sql字符串
      */
     String getSql(Method method, Object[] params);
+
+    /**
+     * 获取sql语句类型
+     * @return 类型
+     */
+    SqlType getType();
 }

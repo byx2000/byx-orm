@@ -23,4 +23,9 @@ public class DynamicUpdateAnnotationSqlGenerator extends SqlGeneratorSupport imp
         Map<String, Object> paramMap = getParamMap(method, params);
         return PlaceholderUtils.replace(sqlTemplate, paramMap);
     }
+
+    @Override
+    public SqlType getType() {
+        return SqlType.UPDATE;
+    }
 }

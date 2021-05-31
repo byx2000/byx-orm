@@ -23,4 +23,9 @@ public class QueryAnnotationSqlGenerator extends SqlGeneratorSupport implements 
         Map<String, Object> paramMap = getParamMap(method, params);
         return PlaceholderUtils.replace(sqlTemplate, paramMap);
     }
+
+    @Override
+    public SqlType getType() {
+        return SqlType.QUERY;
+    }
 }

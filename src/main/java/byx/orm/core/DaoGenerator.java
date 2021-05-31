@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * @author byx
  */
 public class DaoGenerator {
-    private static final String QUERY_PREFIX = "SELECT";
+
 
     private final JdbcUtils jdbcUtils;
 
@@ -77,8 +77,13 @@ public class DaoGenerator {
             if (Object.class.equals(method.getDeclaringClass())) {
                 return method.invoke(this, args);
             } else {
-                String sql = getSql(method, args);
-                if (sql.trim().toUpperCase(Locale.ROOT).startsWith(QUERY_PREFIX)) {
+                SqlGenerator sqlGenerator = getSqlGenerator(method, args);
+                if (sqlGenerator == null) {
+                    throw new ByxOrmException("SqlGenerator not found: " + method);
+                }
+
+                String sql = sqlGenerator.getSql(method, args);
+                if (sqlGenerator.getType() == SqlType.QUERY) {
                     return executeQuery(sql, method);
                 } else {
                     return executeUpdate(sql, method);
@@ -88,22 +93,15 @@ public class DaoGenerator {
     }
 
     /**
-     * 获取sql
+     * 获取SqlGenerator
      */
-    private String getSql(Method method, Object[] params) {
-        String sql = null;
+    private SqlGenerator getSqlGenerator(Method method, Object[] params) {
         for (SqlGenerator g : sqlGenerators) {
             if (g.support(method, params)) {
-                sql = g.getSql(method, params);
-                break;
+                return g;
             }
         }
-
-        if (sql == null) {
-            throw new ByxOrmException("SqlGenerator not found: " + method);
-        }
-
-        return sql;
+        return null;
     }
 
     /**
