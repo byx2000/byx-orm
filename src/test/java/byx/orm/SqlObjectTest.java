@@ -1,6 +1,7 @@
 package byx.orm;
 
 import byx.orm.annotation.*;
+import byx.orm.core.DaoGenerator;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

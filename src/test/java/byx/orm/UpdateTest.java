@@ -2,6 +2,7 @@ package byx.orm;
 
 import byx.orm.annotation.Query;
 import byx.orm.annotation.Update;
+import byx.orm.core.DaoGenerator;
 import byx.util.jdbc.JdbcUtils;
 import org.junit.jupiter.api.Test;
 

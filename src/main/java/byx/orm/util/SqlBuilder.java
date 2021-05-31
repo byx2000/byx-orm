@@ -1,6 +1,4 @@
-package byx.orm.core;
-
-import byx.orm.util.StringUtils;
+package byx.orm.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;

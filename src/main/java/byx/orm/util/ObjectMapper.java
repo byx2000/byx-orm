@@ -1,4 +1,4 @@
-package byx.orm.core;
+package byx.orm.util;
 
 import byx.orm.annotation.Column;
 import byx.orm.exception.ByxOrmException;

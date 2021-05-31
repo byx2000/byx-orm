@@ -4,6 +4,7 @@ import byx.orm.annotation.DynamicQuery;
 import byx.orm.annotation.DynamicUpdate;
 import byx.orm.annotation.Query;
 import byx.orm.annotation.Update;
+import byx.orm.core.DaoGenerator;
 import byx.orm.exception.ByxOrmException;
 import org.junit.jupiter.api.Test;
 
