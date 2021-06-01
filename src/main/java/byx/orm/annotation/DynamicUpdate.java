@@ -1,9 +1,6 @@
 package byx.orm.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * 指定生成动态更新SQL字符串的类和方法
@@ -12,6 +9,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@Documented
 public @interface DynamicUpdate {
     Class<?> type();
     String method() default "";
