@@ -77,13 +77,14 @@ public class DaoGenerator {
             if (Object.class.equals(method.getDeclaringClass())) {
                 return method.invoke(this, args);
             } else {
-                SqlGenerator sqlGenerator = getSqlGenerator(method, args);
+                MethodContext ctx = new MethodContext(method, args);
+                SqlGenerator sqlGenerator = getSqlGenerator(ctx);
                 if (sqlGenerator == null) {
                     throw new ByxOrmException("SqlGenerator not found: " + method);
                 }
 
-                String sql = sqlGenerator.getSql(method, args);
-                if (sqlGenerator.getType() == SqlType.QUERY) {
+                String sql = sqlGenerator.getSql(ctx);
+                if (sqlGenerator.getType(ctx) == SqlType.QUERY) {
                     return executeQuery(sql, method);
                 } else {
                     return executeUpdate(sql, method);
@@ -95,9 +96,9 @@ public class DaoGenerator {
     /**
      * 获取SqlGenerator
      */
-    private SqlGenerator getSqlGenerator(Method method, Object[] params) {
+    private SqlGenerator getSqlGenerator(MethodContext ctx) {
         for (SqlGenerator g : sqlGenerators) {
-            if (g.support(method, params)) {
+            if (g.support(ctx)) {
                 return g;
             }
         }

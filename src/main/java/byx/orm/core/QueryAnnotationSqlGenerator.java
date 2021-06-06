@@ -3,7 +3,6 @@ package byx.orm.core;
 import byx.orm.annotation.Query;
 import byx.orm.util.PlaceholderUtils;
 
-import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -13,19 +12,19 @@ import java.util.Map;
  */
 public class QueryAnnotationSqlGenerator extends SqlGeneratorSupport implements SqlGenerator {
     @Override
-    public boolean support(Method method, Object[] params) {
-        return method.isAnnotationPresent(Query.class);
+    public boolean support(MethodContext ctx) {
+        return ctx.getMethod().isAnnotationPresent(Query.class);
     }
 
     @Override
-    public String getSql(Method method, Object[] params) {
-        String sqlTemplate = method.getAnnotation(Query.class).value();
-        Map<String, Object> paramMap = getParamMap(method, params);
+    public String getSql(MethodContext ctx) {
+        String sqlTemplate = ctx.getMethod().getAnnotation(Query.class).value();
+        Map<String, Object> paramMap = getParamMap(ctx.getMethod(), ctx.getArgs());
         return PlaceholderUtils.replace(sqlTemplate, paramMap);
     }
 
     @Override
-    public SqlType getType() {
+    public SqlType getType(MethodContext ctx) {
         return SqlType.QUERY;
     }
 }

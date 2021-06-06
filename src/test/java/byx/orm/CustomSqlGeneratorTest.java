@@ -1,6 +1,7 @@
 package byx.orm;
 
 import byx.orm.core.DaoGenerator;
+import byx.orm.core.MethodContext;
 import byx.orm.core.SqlGenerator;
 import byx.orm.core.SqlType;
 import org.junit.jupiter.api.Test;
@@ -9,11 +10,10 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CustomSqlGeneratorTest extends BaseTest {
     @Retention(RetentionPolicy.RUNTIME)
@@ -29,18 +29,18 @@ public class CustomSqlGeneratorTest extends BaseTest {
 
     private static class MySqlGenerator implements SqlGenerator {
         @Override
-        public boolean support(Method method, Object[] params) {
-            return method.isAnnotationPresent(SelectAll.class);
+        public boolean support(MethodContext ctx) {
+            return ctx.getMethod().isAnnotationPresent(SelectAll.class);
         }
 
         @Override
-        public String getSql(Method method, Object[] params) {
-            String tableName = method.getAnnotation(SelectAll.class).value();
+        public String getSql(MethodContext ctx) {
+            String tableName = ctx.getMethod().getAnnotation(SelectAll.class).value();
             return "SELECT * FROM " + tableName;
         }
 
         @Override
-        public SqlType getType() {
+        public SqlType getType(MethodContext ctx) {
             return SqlType.QUERY;
         }
     }

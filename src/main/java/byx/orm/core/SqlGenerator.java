@@ -1,7 +1,5 @@
 package byx.orm.core;
 
-import java.lang.reflect.Method;
-
 /**
  * 从Dao方法生成sql字符串
  * 用户可自定义此接口的实现类来扩展ByxOrm的功能
@@ -11,23 +9,25 @@ import java.lang.reflect.Method;
 public interface SqlGenerator {
     /**
      * 是否支持当前方法
-     * @param method 方法
-     * @param params 方法参数
+     *
+     * @param ctx 上下文
      * @return 是否支持
      */
-    boolean support(Method method, Object[] params);
+    boolean support(MethodContext ctx);
 
     /**
      * 获取sql字符串
-     * @param method 方法
-     * @param params 方法参数
+     *
+     * @param ctx 上下文
      * @return sql字符串
      */
-    String getSql(Method method, Object[] params);
+    String getSql(MethodContext ctx);
 
     /**
      * 获取sql语句类型
+     *
+     * @param ctx 上下文
      * @return 类型
      */
-    SqlType getType();
+    SqlType getType(MethodContext ctx);
 }
