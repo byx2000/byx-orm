@@ -3,8 +3,6 @@ package byx.orm.core;
 import byx.orm.annotation.SqlObject;
 import byx.orm.util.ObjectToSql;
 
-import java.util.Locale;
-
 /**
  * 从SqlObject生成sql字符串
  *
@@ -24,10 +22,4 @@ public class SqlObjectAnnotationSqlGenerator implements SqlGenerator {
         return sql = ObjectToSql.generate(ctx.getArgs()[0]);
     }
 
-    @Override
-    public SqlType getType(MethodContext ctx) {
-        return sql.trim().toUpperCase(Locale.ROOT).startsWith(QUERY_PREFIX)
-                ? SqlType.QUERY
-                : SqlType.UPDATE;
-    }
 }

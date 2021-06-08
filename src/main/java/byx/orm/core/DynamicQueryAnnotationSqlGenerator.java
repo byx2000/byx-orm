@@ -23,8 +23,4 @@ public class DynamicQueryAnnotationSqlGenerator extends SqlGeneratorSupport impl
         return PlaceholderUtils.replace(sqlTemplate, paramMap);
     }
 
-    @Override
-    public SqlType getType(MethodContext ctx) {
-        return SqlType.QUERY;
-    }
 }

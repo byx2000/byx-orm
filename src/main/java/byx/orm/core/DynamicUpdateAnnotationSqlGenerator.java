@@ -23,8 +23,4 @@ public class DynamicUpdateAnnotationSqlGenerator extends SqlGeneratorSupport imp
         return PlaceholderUtils.replace(sqlTemplate, paramMap);
     }
 
-    @Override
-    public SqlType getType(MethodContext ctx) {
-        return SqlType.UPDATE;
-    }
 }

@@ -1,14 +1,14 @@
 package byx.orm.core;
 
 import byx.orm.exception.ByxOrmException;
-import byx.orm.util.ObjectMapper;
 import byx.util.jdbc.JdbcUtils;
-import byx.util.jdbc.core.MapRowMapper;
 
 import javax.sql.DataSource;
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Dao生成器
@@ -16,39 +16,45 @@ import java.util.stream.Collectors;
  * @author byx
  */
 public class DaoGenerator {
-
-
-    private final JdbcUtils jdbcUtils;
-
-    private final List<SqlGenerator> sqlGenerators = new ArrayList<>() {
-        {
-            // 添加自带的SqlGenerator
-            add(new QueryAnnotationSqlGenerator());
-            add(new UpdateAnnotationSqlGenerator());
-            add(new DynamicQueryAnnotationSqlGenerator());
-            add(new DynamicUpdateAnnotationSqlGenerator());
-            add(new SqlObjectAnnotationSqlGenerator());
-        }
-    };
+    private List<SqlGenerator> sqlGenerators = new ArrayList<>();
+    private List<SqlExecutor> sqlExecutors = new ArrayList<>();
 
     /**
      * 创建DaoGenerator
+     *
      * @param dataSource 数据源
      */
     public DaoGenerator(DataSource dataSource) {
-        jdbcUtils = new JdbcUtils(dataSource);
+        this(new JdbcUtils(dataSource));
     }
 
     /**
      * 创建DaoGenerator
+     *
      * @param jdbcUtils jdbc工具类
      */
     public DaoGenerator(JdbcUtils jdbcUtils) {
-        this.jdbcUtils = jdbcUtils;
+        sqlGenerators.add(new QueryAnnotationSqlGenerator());
+        sqlGenerators.add(new UpdateAnnotationSqlGenerator());
+        sqlGenerators.add(new DynamicQueryAnnotationSqlGenerator());
+        sqlGenerators.add(new DynamicUpdateAnnotationSqlGenerator());
+        sqlGenerators.add(new SqlObjectAnnotationSqlGenerator());
+
+        sqlExecutors.add(new DefaultSqlExecutor(jdbcUtils));
+    }
+
+    /**
+     * 设置SqlGenerator列表
+     *
+     * @param sqlGenerators SqlGenerator列表
+     */
+    public void setSqlGenerators(List<SqlGenerator> sqlGenerators) {
+        this.sqlGenerators = sqlGenerators;
     }
 
     /**
      * 添加自定义SqlGenerator
+     *
      * @param sqlGenerator SqlGenerator实现类
      */
     public void addSqlGenerator(SqlGenerator sqlGenerator) {
@@ -56,7 +62,26 @@ public class DaoGenerator {
     }
 
     /**
+     * 设置SqlExecutor列表
+     *
+     * @param sqlExecutors SqlExecutor列表
+     */
+    public void setSqlExecutors(List<SqlExecutor> sqlExecutors) {
+        this.sqlExecutors = sqlExecutors;
+    }
+
+    /**
+     * 添加自定义SqlExecutor
+     *
+     * @param sqlExecutor SqlExecutor实现类
+     */
+    public void addSqlExecutor(SqlExecutor sqlExecutor) {
+        sqlExecutors.add(sqlExecutor);
+    }
+
+    /**
      * 生成Dao接口的实现类
+     *
      * @param daoInterface Dao接口类型
      * @param <T> 接口类型
      * @return 接口实现类
@@ -78,25 +103,28 @@ public class DaoGenerator {
                 return method.invoke(this, args);
             } else {
                 MethodContext ctx = new MethodContext(method, args);
-                SqlGenerator sqlGenerator = getSqlGenerator(ctx);
-                if (sqlGenerator == null) {
-                    throw new ByxOrmException("SqlGenerator not found: " + method);
-                }
 
-                String sql = sqlGenerator.getSql(ctx);
-                if (sqlGenerator.getType(ctx) == SqlType.QUERY) {
-                    return executeQuery(sql, method);
-                } else {
-                    return executeUpdate(sql, method);
+                // 生成sql语句
+                SqlGenerator sqlGenerator = searchSqlGenerator(ctx);
+                if (sqlGenerator == null) {
+                    throw new ByxOrmException("SqlGenerator not found: " + ctx);
                 }
+                String sql = sqlGenerator.getSql(ctx);
+
+                // 执行sql语句并返回结果
+                SqlExecutor sqlExecutor = searchSqlExecutor(ctx);
+                if (sqlExecutor == null) {
+                    throw new ByxOrmException("SqlExecutor not found: " + ctx);
+                }
+                return sqlExecutor.execute(ctx, sql);
             }
         }
     }
 
     /**
-     * 获取SqlGenerator
+     * 查找SqlGenerator
      */
-    private SqlGenerator getSqlGenerator(MethodContext ctx) {
+    private SqlGenerator searchSqlGenerator(MethodContext ctx) {
         for (SqlGenerator g : sqlGenerators) {
             if (g.support(ctx)) {
                 return g;
@@ -106,57 +134,14 @@ public class DaoGenerator {
     }
 
     /**
-     * 执行查询操作并返回结果
+     * 查找SqlExecutor
      */
-    private Object executeQuery(String sql, Method method) {
-        System.out.println("sql: " + sql);
-        // 执行sql，获取结果集
-        List<Map<String, Object>> resultList;
-        try {
-            resultList = jdbcUtils.queryList(sql, new MapRowMapper());
-        } catch (Exception e) {
-            throw new ByxOrmException("An error occurred while executing sql: " + sql, e);
+    private SqlExecutor searchSqlExecutor(MethodContext ctx) {
+        for (SqlExecutor e : sqlExecutors) {
+            if (e.support(ctx)) {
+                return e;
+            }
         }
-
-        // 获取方法返回值类型
-        Class<?> returnType = method.getReturnType();
-
-        // 如果返回值是列表，则获取列表的泛型参数类型，并把结果集的每一行转换成该类型
-        // 否则，直接把结果集的第一行转换成返回值类型
-        if (returnType == List.class) {
-            try {
-                Type t = method.getGenericReturnType();
-                Class<?> resultType = (Class<?>) ((ParameterizedType) t).getActualTypeArguments()[0];
-                return resultList.stream().map(m -> ObjectMapper.mapToObject(resultType, m)).collect(Collectors.toList());
-            } catch (Exception e) {
-                throw new ByxOrmException("Unable to read generic parameters.", e);
-            }
-        } else {
-            if (resultList.isEmpty()) {
-                return null;
-            }
-            if (resultList.size() > 1) {
-                throw new ByxOrmException("The number of rows in the result set is greater than 1.");
-            }
-            return ObjectMapper.mapToObject(returnType, resultList.get(0));
-        }
-    }
-
-    /**
-     * 执行更新操作并返回结果
-     */
-    private Object executeUpdate(String sql, Method method) {
-        System.out.println("sql: " + sql);
-        // 如果方法返回值为void，则直接执行更新操作
-        // 否则返回影响行数
-        try {
-            int rows = jdbcUtils.update(sql);
-            if (method.getReturnType() != void.class) {
-                return rows;
-            }
-            return null;
-        } catch (Exception e) {
-            throw new ByxOrmException("An error occurred while executing sql: " + sql, e);
-        }
+        return null;
     }
 }

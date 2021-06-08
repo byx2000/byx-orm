@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 /**
  * 方法上下文
+ * 包含Dao接口方法的信息
  *
  * @author byx
  */

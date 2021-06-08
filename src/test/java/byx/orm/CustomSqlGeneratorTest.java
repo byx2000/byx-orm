@@ -3,7 +3,6 @@ package byx.orm;
 import byx.orm.core.DaoGenerator;
 import byx.orm.core.MethodContext;
 import byx.orm.core.SqlGenerator;
-import byx.orm.core.SqlType;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.ElementType;
@@ -39,10 +38,6 @@ public class CustomSqlGeneratorTest extends BaseTest {
             return "SELECT * FROM " + tableName;
         }
 
-        @Override
-        public SqlType getType(MethodContext ctx) {
-            return SqlType.QUERY;
-        }
     }
 
     @Test

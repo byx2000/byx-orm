@@ -23,8 +23,4 @@ public class QueryAnnotationSqlGenerator extends SqlGeneratorSupport implements 
         return PlaceholderUtils.replace(sqlTemplate, paramMap);
     }
 
-    @Override
-    public SqlType getType(MethodContext ctx) {
-        return SqlType.QUERY;
-    }
 }
