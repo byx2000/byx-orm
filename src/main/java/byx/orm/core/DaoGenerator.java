@@ -76,7 +76,7 @@ public class DaoGenerator {
      * @param sqlExecutor SqlExecutor实现类
      */
     public void addSqlExecutor(SqlExecutor sqlExecutor) {
-        sqlExecutors.add(sqlExecutor);
+        sqlExecutors.add(0, sqlExecutor);
     }
 
     /**
