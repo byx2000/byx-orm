@@ -29,12 +29,16 @@ public class SqlBuilder {
 
         @Override
         public String toString() {
-            return StringUtils.concat(prefix, suffix, delimiter, items);
+            return concat(prefix, suffix, delimiter, items);
         }
     }
 
     private final List<Clause> clauses = new ArrayList<>();
     private final Map<String, Integer> book = new HashMap<>();
+
+    private static String concat(String prefix, String suffix, String delimiter, List<String> strings) {
+        return prefix + String.join(delimiter, strings) + suffix;
+    }
 
     private SqlBuilder addItem(String key, String prefix, String suffix, String delimiter, String item) {
         if (book.containsKey(key)) {

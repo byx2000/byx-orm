@@ -12,8 +12,6 @@ import java.util.List;
 
 /**
  * Dao生成器
- *
- * @author byx
  */
 public class DaoGenerator {
     private List<SqlGenerator> sqlGenerators = new ArrayList<>();
@@ -21,7 +19,6 @@ public class DaoGenerator {
 
     /**
      * 创建DaoGenerator
-     *
      * @param dataSource 数据源
      */
     public DaoGenerator(DataSource dataSource) {
@@ -30,22 +27,18 @@ public class DaoGenerator {
 
     /**
      * 创建DaoGenerator
-     *
      * @param jdbcUtils jdbc工具类
      */
     public DaoGenerator(JdbcUtils jdbcUtils) {
-        sqlGenerators.add(new QueryAnnotationSqlGenerator());
-        sqlGenerators.add(new UpdateAnnotationSqlGenerator());
-        sqlGenerators.add(new DynamicQueryAnnotationSqlGenerator());
-        sqlGenerators.add(new DynamicUpdateAnnotationSqlGenerator());
-        sqlGenerators.add(new SqlObjectAnnotationSqlGenerator());
-
+        sqlGenerators.add(new QuerySqlGenerator());
+        sqlGenerators.add(new UpdateSqlGenerator());
+        sqlGenerators.add(new DynamicQuerySqlGenerator());
+        sqlGenerators.add(new DynamicUpdateSqlGenerator());
         sqlExecutors.add(new DefaultSqlExecutor(jdbcUtils));
     }
 
     /**
      * 设置SqlGenerator列表
-     *
      * @param sqlGenerators SqlGenerator列表
      */
     public void setSqlGenerators(List<SqlGenerator> sqlGenerators) {
@@ -54,7 +47,6 @@ public class DaoGenerator {
 
     /**
      * 添加自定义SqlGenerator
-     *
      * @param sqlGenerator SqlGenerator实现类
      */
     public void addSqlGenerator(SqlGenerator sqlGenerator) {
@@ -63,7 +55,6 @@ public class DaoGenerator {
 
     /**
      * 设置SqlExecutor列表
-     *
      * @param sqlExecutors SqlExecutor列表
      */
     public void setSqlExecutors(List<SqlExecutor> sqlExecutors) {
@@ -72,7 +63,6 @@ public class DaoGenerator {
 
     /**
      * 添加自定义SqlExecutor
-     *
      * @param sqlExecutor SqlExecutor实现类
      */
     public void addSqlExecutor(SqlExecutor sqlExecutor) {
@@ -81,7 +71,6 @@ public class DaoGenerator {
 
     /**
      * 生成Dao接口的实现类
-     *
      * @param daoInterface Dao接口类型
      * @param <T> 接口类型
      * @return 接口实现类
@@ -93,9 +82,7 @@ public class DaoGenerator {
                 new DaoInvocationHandler());
     }
 
-    /**
-     * Dao方法拦截器
-     */
+    // Dao方法拦截器
     private class DaoInvocationHandler implements InvocationHandler {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Exception {
@@ -121,9 +108,7 @@ public class DaoGenerator {
         }
     }
 
-    /**
-     * 查找SqlGenerator
-     */
+    // 查找SqlGenerator
     private SqlGenerator searchSqlGenerator(MethodContext ctx) {
         for (SqlGenerator g : sqlGenerators) {
             if (g.support(ctx)) {
@@ -133,9 +118,7 @@ public class DaoGenerator {
         return null;
     }
 
-    /**
-     * 查找SqlExecutor
-     */
+    // 查找SqlExecutor
     private SqlExecutor searchSqlExecutor(MethodContext ctx) {
         for (SqlExecutor e : sqlExecutors) {
             if (e.support(ctx)) {
