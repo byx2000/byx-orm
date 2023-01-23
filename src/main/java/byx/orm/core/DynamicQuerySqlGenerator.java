@@ -6,9 +6,7 @@ import byx.orm.util.PlaceholderUtils;
 import java.lang.reflect.Method;
 
 /**
- * 从DynamicQuery注解生成sql字符串
- *
- * @author byx
+ * 根据DynamicQuery注解生成sql字符串
  */
 public class DynamicQuerySqlGenerator extends DynamicSqlGenerator {
     @Override

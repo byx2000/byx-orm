@@ -7,10 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 方法上下文
- * 包含Dao接口方法的信息
- *
- * @author byx
+ * 方法上下文，封装Dao接口方法的信息
  */
 public class MethodContext {
     private final Method method;

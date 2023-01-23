@@ -4,9 +4,7 @@ import byx.orm.annotation.Update;
 import byx.orm.util.PlaceholderUtils;
 
 /**
- * 从Update注解生成sql字符串
- *
- * @author byx
+ * 根据Update注解生成sql字符串
  */
 public class UpdateSqlGenerator implements SqlGenerator {
     @Override

@@ -1,9 +1,7 @@
 package byx.orm.core;
 
 /**
- * Sql执行器
- *
- * @author byx
+ * sql执行器
  */
 public interface SqlExecutor {
     /**
@@ -14,7 +12,7 @@ public interface SqlExecutor {
     boolean support(MethodContext ctx);
 
     /**
-     * 执行sql语句
+     * 执行sql语句，并返回执行结果
      * @param ctx 上下文
      * @param sql sql字符串
      * @return 执行结果

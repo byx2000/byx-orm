@@ -7,9 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * SQL字符串生成器
- *
- * @author byx
+ * sql字符串生成器
  */
 public class SqlBuilder {
     private static class Clause {

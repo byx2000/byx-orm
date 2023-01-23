@@ -4,9 +4,7 @@ import byx.orm.annotation.Query;
 import byx.orm.util.PlaceholderUtils;
 
 /**
- * 从Query注解生成sql字符串
- *
- * @author byx
+ * 根据Query注解生成sql字符串
  */
 public class QuerySqlGenerator implements SqlGenerator {
     @Override

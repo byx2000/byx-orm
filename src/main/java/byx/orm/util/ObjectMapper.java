@@ -9,8 +9,6 @@ import java.util.Map;
 
 /**
  * 对象映射器
- *
- * @author byx
  */
 public class ObjectMapper {
     /**

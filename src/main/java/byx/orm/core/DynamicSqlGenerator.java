@@ -6,9 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 /**
- * 动态Sql生成器基类
- *
- * @author byx
+ * 动态sql生成器基类
  */
 public abstract class DynamicSqlGenerator implements SqlGenerator {
     /**

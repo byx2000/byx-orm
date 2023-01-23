@@ -14,13 +14,9 @@ import java.util.regex.Pattern;
  * 占位符工具类
  * 支持#{...}和${...}两种占位符
  * 具体含义与MyBatis中的占位符相同
- *
- * @author byx
  */
 public class PlaceholderUtils {
-    /**
-     * 匹配#{...}或${...}的占位符表达式
-     */
+    // 匹配#{...}或${...}的占位符表达式
     private static final Pattern PATTERN = Pattern.compile("[#$]\\{([a-zA-Z]|_)([0-9a-zA-Z]|_|\\.)*}");
 
     /**
@@ -43,9 +39,7 @@ public class PlaceholderUtils {
         return str;
     }
 
-    /**
-     * 获取字符串中的所有占位符
-     */
+    // 获取字符串中的所有占位符
     private static List<String> getPlaceholders(String str) {
         List<String> result = new ArrayList<>();
         Matcher matcher = PATTERN.matcher(str);
@@ -56,9 +50,7 @@ public class PlaceholderUtils {
         return result;
     }
 
-    /**
-     * 计算占位符表达式的值
-     */
+    // 计算占位符表达式的值
     private static Object getPlaceholderValue(Map<String, Object> paramMap, String expr) {
         String[] path = expr.split("\\.");
         if (!paramMap.containsKey(path[0])) {
@@ -83,9 +75,7 @@ public class PlaceholderUtils {
         }
     }
 
-    /**
-     * 将Java中的对象转换为Sql中的字符串
-     */
+    // 将Java中的对象转换为sql中的字符串
     private static String getValueString(Object obj) {
         Class<?> type = obj.getClass();
         if (type == String.class || type == Character.class) {

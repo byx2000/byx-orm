@@ -14,11 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 默认的SqlExecutor实现类
- * 自动判断sql语句类型（查询或更新）
- * 根据方法返回值类型返回不同的结果
- *
- * @author byx
+ * 默认的SqlExecutor实现类，自动判断sql语句类型（查询或更新），根据方法返回值类型返回不同的结果
  */
 public class DefaultSqlExecutor implements SqlExecutor {
     private final JdbcUtils jdbcUtils;
@@ -43,9 +39,7 @@ public class DefaultSqlExecutor implements SqlExecutor {
         }
     }
 
-    /**
-     * 执行查询操作并返回结果
-     */
+    // 执行查询操作并返回结果
     private Object executeQuery(String sql, Method method) {
         System.out.println("sql: " + sql);
         // 执行sql，获取结果集
@@ -80,9 +74,7 @@ public class DefaultSqlExecutor implements SqlExecutor {
         }
     }
 
-    /**
-     * 执行更新操作并返回结果
-     */
+    // 执行更新操作并返回结果
     private Object executeUpdate(String sql, Method method) {
         System.out.println("sql: " + sql);
         // 如果方法返回值为void，则直接执行更新操作
