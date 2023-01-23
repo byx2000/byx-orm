@@ -1,6 +1,6 @@
 package byx.orm;
 
-import byx.orm.annotation.Query;
+import byx.orm.annotation.Sql;
 import byx.orm.core.DaoGenerator;
 import byx.orm.util.jdbc.JdbcUtils;
 import org.junit.jupiter.api.Test;
@@ -12,46 +12,46 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class QueryTest extends BaseTest {
     private interface UserDao {
-        @Query("SELECT * FROM t_user WHERE u_id = #{id}")
+        @Sql("SELECT * FROM t_user WHERE u_id = #{id}")
         User getById(int id);
 
-        @Query("SELECT * FROM t_user WHERE u_username = #{username} AND u_password = #{password}")
+        @Sql("SELECT * FROM t_user WHERE u_username = #{username} AND u_password = #{password}")
         User getByUsernameAndPassword(String username, String password);
 
-        @Query("SELECT * FROM t_user")
+        @Sql("SELECT * FROM t_user")
         List<User> listAll();
 
-        @Query("SELECT * FROM t_user WHERE level >= #{level}")
+        @Sql("SELECT * FROM t_user WHERE level >= #{level}")
         List<User> listByLevel(Integer level);
 
-        @Query("SELECT COUNT(*) FROM t_user")
+        @Sql("SELECT COUNT(*) FROM t_user")
         Integer count1();
 
-        @Query("SELECT COUNT(*) FROM t_user")
+        @Sql("SELECT COUNT(*) FROM t_user")
         int count2();
 
-        @Query("SELECT COUNT(*) FROM t_user WHERE level = #{level}")
+        @Sql("SELECT COUNT(*) FROM t_user WHERE level = #{level}")
         Integer countByLevel1(Integer level);
 
-        @Query("SELECT COUNT(*) FROM t_user WHERE level = #{level}")
+        @Sql("SELECT COUNT(*) FROM t_user WHERE level = #{level}")
         int countByLevel2(Integer level);
 
-        @Query("SELECT * FROM t_user WHERE level >= #{range.low} AND level <= #{range.high}")
+        @Sql("SELECT * FROM t_user WHERE level >= #{range.low} AND level <= #{range.high}")
         List<User> listOfLevelRange(Range range);
 
-        @Query("SELECT u_username FROM t_user")
+        @Sql("SELECT u_username FROM t_user")
         List<String> listAllUsername();
 
-        @Query("SELECT u_id, u_username FROM t_user WHERE u_id = #{id}")
+        @Sql("SELECT u_id, u_username FROM t_user WHERE u_id = #{id}")
         User getById2(Integer id);
 
-        @Query("SELECT u_id, 123 AS value FROM t_user WHERE u_id = #{id}")
+        @Sql("SELECT u_id, 123 AS value FROM t_user WHERE u_id = #{id}")
         User getById3(Integer id);
 
-        @Query("SELECT u_username FROM t_user WHERE u_id = #{id}")
+        @Sql("SELECT u_username FROM t_user WHERE u_id = #{id}")
         String getUsername(Integer id);
 
-        @Query("SELECT * FROM t_user ORDER BY ${orderBy}")
+        @Sql("SELECT * FROM t_user ORDER BY ${orderBy}")
         List<User> listWithOrder(String orderBy);
     }
 

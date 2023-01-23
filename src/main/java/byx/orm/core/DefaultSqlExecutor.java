@@ -32,11 +32,16 @@ public class DefaultSqlExecutor implements SqlExecutor {
 
     @Override
     public Object execute(MethodContext ctx, String sql) {
-        if (sql.trim().toUpperCase(Locale.ROOT).startsWith(QUERY_PREFIX)) {
+        if (isQuery(sql)) {
             return executeQuery(sql, ctx.getMethod());
         } else {
             return executeUpdate(sql, ctx.getMethod());
         }
+    }
+
+    // 判断sql是不是查询语句
+    private boolean isQuery(String sql) {
+        return sql.trim().toUpperCase(Locale.ROOT).startsWith(QUERY_PREFIX);
     }
 
     // 执行查询操作并返回结果

@@ -3,12 +3,12 @@ package byx.orm.annotation;
 import java.lang.annotation.*;
 
 /**
- * 指定更新sql
+ * 指定Dao方法对应的sql
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.FIELD, ElementType.METHOD})
 @Documented
-public @interface Update {
+public @interface Sql {
     /**
      * sql
      */

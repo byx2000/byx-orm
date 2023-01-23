@@ -82,38 +82,38 @@ public interface UserDao {
     /**
      * 查询所有用户，返回列表
      */
-    @Query("SELECT * FROM user")
+    @Sql("SELECT * FROM user")
     List<User> listAll();
 
     /**
      * 查询指定id的用户，返回单个对象
      */
-    @Query("SELECT * FROM user WHERE u_id = #{id}")
+    @Sql("SELECT * FROM user WHERE u_id = #{id}")
     User getById(Integer id);
 
     /**
      * 多条件查询用户，动态构造SQL语句
      */
-    @DynamicQuery(type = SqlProvider.class, method = "query")
+    @DynamicSql(type = SqlProvider.class, method = "query")
     List<User> query(String username, String password);
 
     /**
      * 查询用户总数
      */
-    @Query("SELECT COUNT(0) FROM user")
+    @Sql("SELECT COUNT(0) FROM user")
     int count();
 
     /**
      * 插入用户，无返回值
      */
-    @Update("INSERT into user(u_username, u_password) " +
+    @Sql("INSERT into user(u_username, u_password) " +
             "VALUES(#{user.username}, #{user.password})")
     void insert(User user);
 
     /**
      * 删除指定id的用户，返回影响行数
      */
-    @Update("DELETE FROM user WHERE u_id = #{id}")
+    @Sql("DELETE FROM user WHERE u_id = #{id}")
     int delete(Integer id);
 
     class SqlProvider {
@@ -210,11 +210,11 @@ User{id=3, username='ccc', password='789'}
 User{id=4, username='byx', password='666'}
 ```
 
-## @Query注解
+## @Sql注解
 
-该注解用于指定查询操作的SQL，与MyBatis的`@Select`类似，支持`#{...}`占位符。
+该注解用于指定查询或更新操作的SQL，与MyBatis的`@Select`、`@Update`类似，支持`#{...}`占位符。
 
-使用`@Query`标注的方法的返回值可以为以下形式：
+执行查询操作时，使用`@Sql`标注的方法的返回值可以为以下形式：
 
 |返回值类型|说明|
 |---|---|
@@ -227,24 +227,20 @@ User{id=4, username='byx', password='666'}
 ```java
 public interface UserDao {
     // 查询所有用户
-    @Query("SELECT * FROM user")
+    @Sql("SELECT * FROM user")
     List<User> listAll();
 
     // 根据id查询用户
-    @Query("SELECT * FROM user WHERE id = #{id}")
+    @Sql("SELECT * FROM user WHERE id = #{id}")
     User getById(Integer id);
 
     // 查询用户总数
-    @Query("SELECT COUNT(0) FROM user")
+    @Sql("SELECT COUNT(0) FROM user")
     int count();    
 }
 ```
 
-## @Update注解
-
-该注解用于指定更新操作的SQL，更新操作包括`insert`、`update`、`delete`，与MyBatis的`Update`、`Insert`、`Delete`类似，支持`#{...}`占位符。
-
-使用`@Update`标注的方法的返回值可以为以下形式：
+执行更新操作时，使用`@Sql`标注的方法的返回值可以为以下形式：
 
 |返回值类型|说明|
 |---|---|
@@ -256,22 +252,22 @@ public interface UserDao {
 ```java
 public interface UserDao {
     // 插入用户
-    @Update("INSERT INTO user(username, password) VALUES(#{user.username}, #{user.password})")
+    @Sql("INSERT INTO user(username, password) VALUES(#{user.username}, #{user.password})")
     int insert(User user);
 
     // 删除用户
-    @Update("DELETE FROM user WHERE id = #{id}")
+    @Sql("DELETE FROM user WHERE id = #{id}")
     void delete(Integer id);
 
     // 更新用户名
-    @Update("UPDATE user SET username = #{username} WHERE id = #{id}")
+    @Sql("UPDATE user SET username = #{username} WHERE id = #{id}")
     void update(Integer id, String username);
 }
 ```
 
-## @DynamicQuery注解
+## @DynamicSql注解
 
-该注解用于动态生成查询SQL字符串，与MyBatis中的`SelectProvider`类似，需要指定以下两个属性：
+该注解用于动态生成查询或更新SQL字符串，与MyBatis中的`SelectProvider`、`UpdateProvider`类似，需要指定以下两个属性：
 
 * `type`: 生成SQL字符串的类
 * `method`: 生成SQL字符串的方法名
@@ -283,7 +279,7 @@ public interface UserDao {
 ```java
 public interface UserDao {
     // 根据用户名或密码查询用户
-    @DynamicQuery(type = SqlProvider.class, method = "query")
+    @DynamicSql(type = SqlProvider.class, method = "query")
     List<User> query(String username, String password);
 
     class SqlProvider {
@@ -307,6 +303,6 @@ public interface UserDao {
 
 注：
 
-1. `DynamicQuery`的`type`指定的类必须要有默认构造函数
-2. 如果`DynamicQuery`不指定`method`，则默认使用被标注方法的方法名
+1. `DynamicSql`的`type`指定的类必须要有默认构造函数
+2. 如果`DynamicSql`不指定`method`，则默认使用被标注方法的方法名
 3. 可以使用`SqlBuilder`来拼接SQL字符串，用法与MyBatis的`SQL`类似

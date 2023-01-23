@@ -1,29 +1,30 @@
 package byx.orm;
 
-import byx.orm.annotation.DynamicQuery;
+import byx.orm.annotation.DynamicSql;
 import byx.orm.core.DaoGenerator;
 import byx.orm.util.SqlBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DynamicQueryTest extends BaseTest {
     private interface UserDao {
-        @DynamicQuery(type = SqlProvider.class, method = "listByLevelRange1")
+        @DynamicSql(type = SqlProvider.class, method = "listByLevelRange1")
         List<User> listByLevelRange1(Integer low, Integer high);
 
-        @DynamicQuery(type = SqlProvider.class)
+        @DynamicSql(type = SqlProvider.class)
         List<User> listByLevelRange2(Range range);
 
-        @DynamicQuery(type = SqlProvider.class, method = "listByLevelRange3")
+        @DynamicSql(type = SqlProvider.class, method = "listByLevelRange3")
         List<User> listByLevelRange3(Integer low, Integer high);
 
-        @DynamicQuery(type = SqlProvider.class)
+        @DynamicSql(type = SqlProvider.class)
         List<User> listByLevelRange4(Integer low, Integer high);
 
-        @DynamicQuery(type = SqlProvider.class)
+        @DynamicSql(type = SqlProvider.class)
         List<User> listByLevelRange5(Integer low, Integer high);
 
         class SqlProvider {

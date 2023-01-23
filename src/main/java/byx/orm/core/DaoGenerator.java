@@ -30,10 +30,8 @@ public class DaoGenerator {
      * @param jdbcUtils jdbc工具类
      */
     public DaoGenerator(JdbcUtils jdbcUtils) {
-        sqlGenerators.add(new QuerySqlGenerator());
-        sqlGenerators.add(new UpdateSqlGenerator());
-        sqlGenerators.add(new DynamicQuerySqlGenerator());
-        sqlGenerators.add(new DynamicUpdateSqlGenerator());
+        sqlGenerators.add(new TemplateSqlGenerator());
+        sqlGenerators.add(new DynamicSqlGenerator());
         sqlExecutors.add(new DefaultSqlExecutor(jdbcUtils));
     }
 

@@ -1,7 +1,6 @@
 package byx.orm;
 
-import byx.orm.annotation.Query;
-import byx.orm.annotation.Update;
+import byx.orm.annotation.Sql;
 import byx.orm.core.DaoGenerator;
 import byx.orm.util.jdbc.JdbcUtils;
 import org.junit.jupiter.api.Test;
@@ -12,16 +11,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UpdateTest extends BaseTest {
     private interface UserDao {
-        @Update("INSERT INTO t_user(u_username, u_password, level) VALUES(#{username}, #{password}, #{level})")
+        @Sql("INSERT INTO t_user(u_username, u_password, level) VALUES(#{username}, #{password}, #{level})")
         int insert(String username, String password, int level);
 
-        @Update("DELETE FROM t_user WHERE u_username = #{username}")
+        @Sql("DELETE FROM t_user WHERE u_username = #{username}")
         void deleteByUsername(String username);
 
-        @Query("SELECT COUNT(*) FROM t_user")
+        @Sql("SELECT COUNT(*) FROM t_user")
         int count();
 
-        @Query("SELECT * FROM t_user WHERE level >= #{level}")
+        @Sql("SELECT * FROM t_user WHERE level >= #{level}")
         List<User> listByLevel(Integer level);
     }
 

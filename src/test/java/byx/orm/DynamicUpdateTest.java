@@ -1,21 +1,22 @@
 package byx.orm;
 
-import byx.orm.annotation.DynamicUpdate;
-import byx.orm.annotation.Query;
+import byx.orm.annotation.DynamicSql;
+import byx.orm.annotation.Sql;
 import byx.orm.core.DaoGenerator;
 import byx.orm.util.SqlBuilder;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DynamicUpdateTest extends BaseTest {
     private interface UserDao {
-        @Query("SELECT * FROM t_user WHERE u_id = #{id}")
+        @Sql("SELECT * FROM t_user WHERE u_id = #{id}")
         User getById(Integer id);
 
-        @DynamicUpdate(type = SqlProvider.class, method = "update")
+        @DynamicSql(type = SqlProvider.class, method = "update")
         void update(User user);
 
-        @DynamicUpdate(type = SqlProvider.class)
+        @DynamicSql(type = SqlProvider.class)
         void update(int id, String username, String password, Integer level);
 
         class SqlProvider {

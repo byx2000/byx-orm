@@ -1,9 +1,6 @@
 package byx.orm;
 
-import byx.orm.annotation.DynamicQuery;
-import byx.orm.annotation.DynamicUpdate;
-import byx.orm.annotation.Query;
-import byx.orm.annotation.Update;
+import byx.orm.annotation.*;
 import byx.orm.core.DaoGenerator;
 import byx.orm.exception.ByxOrmException;
 import org.junit.jupiter.api.Test;
@@ -14,43 +11,43 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ExceptionTest extends BaseTest {
     private interface UserDao {
-        @Query("SELECT * FROM t_user")
+        @Sql("SELECT * FROM t_user")
         User list1();
 
-        @Query("SELECT * FROM t_user")
+        @Sql("SELECT * FROM t_user")
         int list2();
 
-        @Query("SELECT * FROM t_user")
+        @Sql("SELECT * FROM t_user")
         List<?> list3();
 
-        @DynamicQuery(type = SqlProvider.class, method = "fdvbdf")
+        @DynamicSql(type = SqlProvider.class, method = "fdvbdf")
         List<User> list4();
 
-        @Query("SELECT * FROM t_user")
+        @Sql("SELECT * FROM t_user")
         void list5();
 
-        @Query("sdjgfsjkdbvkjsbvkjsd")
+        @Sql("sdjgfsjkdbvkjsbvkjsd")
         List<User> list6();
 
-        @DynamicQuery(type = SqlProvider.class, method = "list7")
+        @DynamicSql(type = SqlProvider.class, method = "list7")
         List<User> list7();
 
-        @Update("sdjvkgkasjdbasjdk")
+        @Sql("sdjvkgkasjdbasjdk")
         void update1();
 
-        @DynamicUpdate(type = SqlProvider.class, method = "update")
+        @DynamicSql(type = SqlProvider.class, method = "update")
         void update2();
 
-        @DynamicUpdate(type = SqlProvider.class, method = "update3")
+        @DynamicSql(type = SqlProvider.class, method = "update3")
         void update3();
 
-        @Query("SELECT u_id, u_username FROM t_user WHERE u_id = 1")
+        @Sql("SELECT u_id, u_username FROM t_user WHERE u_id = 1")
         String get1();
 
-        @Query("SELECT * FROM t_user WHERE username = #{username}")
+        @Sql("SELECT * FROM t_user WHERE username = #{username}")
         String get2();
 
-        @Query("SELECT u_username FROM t_user WHERE id = #{username.id}")
+        @Sql("SELECT u_username FROM t_user WHERE id = #{username.id}")
         String get3(String username);
 
         class SqlProvider {

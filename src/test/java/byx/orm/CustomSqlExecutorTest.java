@@ -1,17 +1,18 @@
 package byx.orm;
 
-import byx.orm.annotation.Query;
+import byx.orm.annotation.Sql;
 import byx.orm.core.DaoGenerator;
 import byx.orm.core.MethodContext;
 import byx.orm.core.SqlExecutor;
 import byx.orm.exception.ByxOrmException;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CustomSqlExecutorTest extends BaseTest {
     @Retention(RetentionPolicy.RUNTIME)
@@ -21,7 +22,7 @@ public class CustomSqlExecutorTest extends BaseTest {
     }
 
     private interface UserDao {
-        @Query("SELECT * FROM t_user")
+        @Sql("SELECT * FROM t_user")
         @MyAnnotation
         int listAll();
     }
