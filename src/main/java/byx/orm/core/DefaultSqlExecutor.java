@@ -2,8 +2,8 @@ package byx.orm.core;
 
 import byx.orm.exception.ByxOrmException;
 import byx.orm.util.ObjectMapper;
-import byx.util.jdbc.JdbcUtils;
-import byx.util.jdbc.core.MapRowMapper;
+import byx.orm.util.jdbc.JdbcUtils;
+import byx.orm.util.jdbc.MapRowMapper;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;

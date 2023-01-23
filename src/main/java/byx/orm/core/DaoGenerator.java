@@ -1,7 +1,7 @@
 package byx.orm.core;
 
 import byx.orm.exception.ByxOrmException;
-import byx.util.jdbc.JdbcUtils;
+import byx.orm.util.jdbc.JdbcUtils;
 
 import javax.sql.DataSource;
 import java.lang.reflect.InvocationHandler;

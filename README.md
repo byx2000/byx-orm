@@ -7,26 +7,6 @@ ByxOrm是一个模仿MyBatis设计的轻量级ORM框架，支持以下特性：
 * 使用注解配置实体类字段与数据库列名的对应关系
 * 动态查询和动态更新
 
-## Maven引入
-
-```xml
-<repositories>
-    <repository>
-        <id>byx-maven-repo</id>
-        <name>byx-maven-repo</name>
-        <url>https://gitee.com/byx2000/maven-repo/raw/master/</url>
-    </repository>
-</repositories>
-
-<dependencies>
-    <dependency>
-        <groupId>byx.orm</groupId>
-        <artifactId>byx-orm</artifactId>
-        <version>1.0.0</version>
-    </dependency>
-</dependencies>
-```
-
 ## 开启`-parameters`编译选项
 
 由于ByxOrm运行过程中需要读取方法参数名，所以需要在`pom.xml`中启用`-parameters`编译选项：
